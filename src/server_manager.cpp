@@ -575,6 +575,6 @@ void ServerManager::configure_server(const std::string &name, const std::string 
     configs_.emplace_back(type, port);
     endpoints.emplace_back(type, address, external);
 
-    log_->info("Configured {} on listen on {}:{}", name, port, address);
+    log_->info("Configured {} to listen on {}:{}", name, address, port);
 }
 } // namespace server
