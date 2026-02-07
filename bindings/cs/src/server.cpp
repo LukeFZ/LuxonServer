@@ -20,6 +20,14 @@ CSHARP_API ServerContextHandle luxon_csharp_server_context_create() {
     return handle;
 }
 
+CSHARP_API void luxon_csharp_server_context_setup(const ServerContextHandle handle) {
+    const auto it = server_contexts.find(handle);
+    if (it == server_contexts.end())
+        return;
+    
+    it->second->manager.setup();
+}
+
 CSHARP_API void luxon_csharp_server_context_run(const ServerContextHandle handle) {
     const auto it = server_contexts.find(handle);
     if (it == server_contexts.end())
