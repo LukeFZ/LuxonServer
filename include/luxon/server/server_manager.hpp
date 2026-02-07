@@ -95,8 +95,6 @@ private:
 
     bool running_;
 
-    void setup();
-
     void run_scheduled_tasks();
 
 public:
@@ -104,6 +102,7 @@ public:
     Metric busy_time, idle_time;
 #endif
 
+    ServerManager();
     ServerManager(const std::string& config_file);
 
     ///
@@ -131,6 +130,22 @@ public:
         unsigned target_time = startup_time_.get() + delay_ms;
         scheduled_tasks_.push({target_time, std::move(callback)});
     }
+
+    ///
+    /// \brief Configures a given server.
+    /// \note This is used for configuring servers when not using the YAML config file.
+    /// \param name Name of server, e.g. "NameServer", "MasterServer", "GameServer"
+    /// \param address Address to bind server to
+    /// \param port Port to bind server to
+    /// \param external Whether this is a Photon or non-Photon server
+    ///
+    void configure_server(const std::string& name, const std::string& address, uint16_t port, bool external);
+
+    ///
+    /// \brief Initializes the servers after they were configured.
+    /// \note Call this after calling configure_server() for all servers, and before calling run()
+    ///
+    void setup();
 
 #ifdef LUXON_SERVER_ENABLE_PLUGINS
     ///

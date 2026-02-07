@@ -118,12 +118,14 @@ HandlerPtr<HandlerBase> ServerTypeToHandler(ServerType type, ServerManager& serv
 }
 } // namespace
 
-ServerManager::ServerManager(const std::string& config_file) {
+ServerManager::ServerManager() : running_(false) {
     log_ = create_logger("ServerManager");
 #ifndef NDEBUG
     log_->set_level(log_level::trace);
 #endif
+}
 
+ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
     log_->debug("Reading config file contents");
     std::string contents = LoadFile(config_file);
 
@@ -565,5 +567,14 @@ void ServerManager::setup() {
             log_->error("Failed to add new server to sock selector!", ServerTypeToString(config.type), config.port);
 #endif
     }
+}
+
+void ServerManager::configure_server(const std::string &name, const std::string &address, const uint16_t port, bool external) {
+    const auto type = StringToServerType(name);
+
+    configs_.emplace_back(type, port);
+    endpoints.emplace_back(type, address, external);
+
+    log_->info("Configured {} on listen on {}:{}", name, port, address);
 }
 } // namespace server
