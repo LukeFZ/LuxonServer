@@ -2,10 +2,10 @@ namespace LuxonServer;
 
 public static class CustomTypeRegistry
 {
-    public delegate byte[] SerializeFunction<T>(T value);
-    public delegate T DeserializeFunction<T>(byte[] data);
+    public delegate byte[] SerializeFunction<in T>(T value);
+    public delegate T DeserializeFunction<out T>(byte[] data);
 
-    public static void RegisterType<T>(SerializeFunction<T> serializer, DeserializeFunction<T> deserializer)
+    public static void RegisterType<T>(byte code, SerializeFunction<T> serializer, DeserializeFunction<T> deserializer)
     {
         
     }
