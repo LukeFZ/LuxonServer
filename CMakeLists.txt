@@ -13,6 +13,7 @@ option(LUXON_SERVER_ENABLE_WEBSERVER "Enable the built-in webserver" ON)
 option(LUXON_SERVER_ENABLE_PLUGINS "Enable use of game plugins" OFF)
 option(LUXON_SERVER_POLL "Poll blindly instead of select with timeout, less efficient" OFF)
 option(LUXON_USE_EMBED_RESOURCE "Use EmbedResource instead of incbin.h" OFF)
+option(LUXON_BUILD_SHARED_LIBRARY "Build a shared library instead of an executable" OFF)
 
 # Apply single-threaded optimizations if strictly single-threaded
 if (NOT LUXON_SERVER_ENABLE_PLUGINS AND NOT WIN32)
@@ -47,15 +48,22 @@ endif()
 
 add_subdirectory(commoncpp)
 
-add_executable(luxon_server
+if (LUXON_BUILD_SHARED_LIBRARY)
+    add_library(luxon_server SHARED)
+else()
+    add_executable(luxon_server src/main.cpp)
+endif()
+
+target_sources(luxon_server PRIVATE
     include/luxon/server/apps.hpp  include/luxon/server/global.hpp    include/luxon/server/logger.hpp  src/apps.cpp src/handler_gameserver.cpp    src/lobby.cpp src/platform.cpp
     include/luxon/server/authentication.hpp  include/luxon/server/handler_base.hpp    include/luxon/server/metrics.hpp  src/authentication.cpp src/handler_masterserver.cpp  src/logger.cpp src/platform.hpp
-    include/luxon/server/codes.hpp  include/luxon/server/handler_gameserver.hpp    include/luxon/server/peer.hpp  src/handler_nameserver.cpp    src/main.cpp src/server_manager.cpp
+    include/luxon/server/codes.hpp  include/luxon/server/handler_gameserver.hpp    include/luxon/server/peer.hpp  src/handler_nameserver.cpp    src/server_manager.cpp
     include/luxon/server/handler_masterserver.hpp  include/luxon/server/peer_persistence.hpp  src/game.cpp    src/metrics.cpp src/sock_selector.cpp
     include/luxon/server/game.hpp  include/luxon/server/handler_nameserver.hpp    include/luxon/server/server_manager.hpp src/incbin.h      src/minicoro.h src/yaml.cpp
     include/luxon/server/sock_selector.hpp  include/luxon/server/json_fwd.hpp      src/peer.cpp src/yaml.hpp
     include/luxon/server/lobby.hpp    include/luxon/server/string_hash.hpp  src/handler_base.cpp src/json.hpp      src/peer_persistence.cpp
 )
+
 target_link_libraries(luxon_server
     sanmake commoncpp luxon_enet luxon_ser luxon_http_parser luxon_visualizer
 )

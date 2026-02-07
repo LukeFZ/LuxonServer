@@ -53,7 +53,8 @@
       "inherits": "Debug",
       "cacheVariables": {
         "LUXON_SERVER_ENABLE_PLUGINS": true,
-        "LUXON_PLUGINS": "${sourceDir}/bindings/cs"
+        "LUXON_PLUGINS": "${sourceDir}/bindings/cs",
+        "LUXON_BUILD_SHARED_LIBRARY": true
       }
     }
   ]
