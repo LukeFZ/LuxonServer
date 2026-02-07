@@ -1,6 +1,7 @@
 {
   "dependencies": [
+    "ankurvdev-embedresource",
     "mbedtls",
-    "ankurvdev-embedresource"
+    "spdlog"
   ]
 }
