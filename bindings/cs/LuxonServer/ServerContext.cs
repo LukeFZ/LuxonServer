@@ -2,7 +2,7 @@
 
 namespace LuxonServer;
 
-using ServerContextHandle = ulong;
+using ServerContextHandle = nuint;
 
 public sealed class ServerContext : IDisposable
 {

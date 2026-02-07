@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-using PluginInstanceHandle = ulong;
+using PluginInstanceHandle = nuint;
 
 // Struct size and layout needs to match with the C++ side
 [StructLayout(LayoutKind.Sequential)]

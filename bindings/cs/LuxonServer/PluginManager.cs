@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-using PluginInstanceHandle = ulong;
+using PluginInstanceHandle = nuint;
 
 public static unsafe class PluginManager
 {

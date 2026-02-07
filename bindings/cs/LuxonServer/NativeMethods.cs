@@ -2,8 +2,8 @@
 
 namespace LuxonServer;
 
-using ServerContextHandle = ulong;
-using CustomObjectHandle = ulong;
+using ServerContextHandle = nuint;
+using CustomObjectHandle = nuint;
 
 internal static unsafe partial class NativeMethods
 {

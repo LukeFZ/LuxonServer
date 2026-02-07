@@ -1,59 +1,29 @@
-#include <span>
-#include <stdexcept>
-
+#include "custom_type.hpp"
 #include "export.hpp"
-#include "luxon/ser_types.hpp"
 
-// Opaque handle for an instance of a custom object
-using CustomObjectHandle = uintptr_t;
+CSHARP_API void luxon_csharp_register_custom_type(const uint8_t code) { CustomTypeRegistry::register_custom_type(code); }
 
-struct CustomObject {
-    CustomObjectHandle handle;
-    uint8_t code;
-};
+CSHARP_API void luxon_csharp_unregister_custom_type(const uint8_t code) { CustomTypeRegistry::unregister_custom_type(code); }
 
-using CSharpSerializerFunction = void(*)(CustomObjectHandle handle, uint8_t** out_buffer, size_t* out_size);
-using CSharpDeserializerFunction = CustomObjectHandle(*)(const uint8_t* buffer, size_t size);
+CSHARP_API void luxon_csharp_set_custom_type_registry(const CustomTypeRegistryInterface *interface) { CustomTypeRegistry::set_interface(interface); }
 
-CSHARP_API void luxon_csharp_register_custom_type(const uint8_t code, CSharpSerializerFunction serializer, CSharpDeserializerFunction deserializer) {
-    
+void CustomTypeRegistry::set_interface(const CustomTypeRegistryInterface *interface) { interface_ = *interface; }
+
+void CustomTypeRegistry::register_custom_type(const uint8_t code) { registered_codes_.emplace(code); }
+
+void CustomTypeRegistry::unregister_custom_type(const uint8_t code) { registered_codes_.erase(code); }
+
+bool CustomTypeRegistry::is_registered(const uint8_t code) { return registered_codes_.contains(code); }
+
+luxon::ser::RawCustomValue CustomTypeRegistry::serialize_value(const ParsedCustomValue& value) {
+    uint8_t *buffer = nullptr;
+    size_t size = 0;
+    interface_.serialize(value.handle, &buffer, &size);
+
+    return luxon::ser::RawCustomValue{.custom_code = value.custom_code, .data = luxon::ser::ByteArray(buffer, buffer + size)};
 }
 
-CSHARP_API void luxon_csharp_unregister_custom_type(const uint8_t code) {
-    
+ParsedCustomValue CustomTypeRegistry::deserialize_value(const luxon::ser::RawCustomValue& value) {
+    const auto handle = interface_.deserialize(value.data.data(), value.data.size());
+    return ParsedCustomValue{.custom_code = value.custom_code, .handle = handle};
 }
-
-class CustomTypeRegistry {
-public:
-    luxon::ser::RawCustomValue serialize_object(const CustomObject& object) {
-        const auto info = registered_type_map_.find(object.code);
-
-        if (info == registered_type_map_.end()) {
-            throw std::out_of_range("Tried to serialize unknown custom value with code " + std::to_string(object.code));
-        }
-
-        uint8_t *buffer = nullptr;
-        size_t size = 0;
-        info->second.serializer(object.handle, &buffer, &size);
-
-        return luxon::ser::RawCustomValue{.custom_code = object.code, .data = luxon::ser::ByteArray(buffer, buffer + size)};
-    }
-
-    CustomObject deserialize_object(const luxon::ser::RawCustomValue& value) {
-        const auto info = registered_type_map_.find(value.custom_code);
-
-        if (info == registered_type_map_.end()) {
-            throw std::out_of_range("Tried to deserialize unknown custom value with code " + std::to_string(value.custom_code));
-        }
-
-        const auto handle = info->second.deserializer(value.data.data(), value.data.size());
-        return CustomObject{.handle = handle, .code = value.custom_code};
-    }
-private:
-    struct SerializationInfo {
-        CSharpSerializerFunction serializer;
-        CSharpDeserializerFunction deserializer;
-    };
-
-    std::unordered_map<uint8_t, SerializationInfo> registered_type_map_;
-};

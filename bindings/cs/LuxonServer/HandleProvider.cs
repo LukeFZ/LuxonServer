@@ -2,8 +2,8 @@
 
 public struct HandleProvider
 {
-    private ulong _nextHandle;
+    private nuint _nextHandle;
 
-    public ulong AcquireHandle()
+    public nuint AcquireHandle()
         => Interlocked.Increment(ref _nextHandle);
 }
