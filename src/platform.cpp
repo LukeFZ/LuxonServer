@@ -3,6 +3,12 @@
 
 #include "platform.hpp"
 
+// Static instance to manage platform-specific initialization
+// Done here so that this does not need to be exposed outside of the module
+namespace {
+Platform instance;
+}
+
 #ifdef PLATFORM_3DS
 #include <string>
 #include <exception>
