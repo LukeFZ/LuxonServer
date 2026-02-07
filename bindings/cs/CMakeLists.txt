@@ -10,6 +10,6 @@ endif()
 
 file(GLOB SOURCE_FILES "src/*.cpp" "src/*.hpp")
 
-add_library(luxon_csharp_plugin OBJECT ${SOURCE_FILES})
+add_library(luxon_csharp_plugin STATIC ${SOURCE_FILES})
 
 luxon_register_plugin(luxon_csharp_plugin)

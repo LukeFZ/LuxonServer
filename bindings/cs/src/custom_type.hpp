@@ -28,7 +28,4 @@ public:
 
     static luxon::ser::RawCustomValue serialize_value(const ParsedCustomValue& value);
     static ParsedCustomValue deserialize_value(const luxon::ser::RawCustomValue& value);
-private:
-    static std::unordered_set<uint8_t> registered_codes_;
-    static CustomTypeRegistryInterface interface_;
 };
