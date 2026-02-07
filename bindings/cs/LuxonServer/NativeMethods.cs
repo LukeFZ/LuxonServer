@@ -49,5 +49,7 @@ internal static unsafe partial class NativeMethods
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_set_custom_type_registry(CustomTypeRegistryInterface* registryInterface);
 
-
+    // Object Manager
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_set_object_manager(ObjectManagerInterface* objectManagerInterface);
 }

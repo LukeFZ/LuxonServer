@@ -16,6 +16,8 @@ public static unsafe class CustomTypeRegistry
 
     private static void RegisterCustomTypeRegistry()
     {
+        ObjectManager.RegisterObjectManager();
+
         var customTypeRegistryInterface = new CustomTypeRegistryInterface
         {
             SerializeCustomType = &SerializeCustomType,

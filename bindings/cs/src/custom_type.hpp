@@ -3,14 +3,12 @@
 #include <cstdint>
 #include <unordered_set>
 
+#include "object_management.hpp"
 #include "luxon/ser_types.hpp"
-
-// Opaque handle for an instance of a custom object
-using ObjectHandle = intptr_t;
 
 struct ParsedCustomValue {
     uint8_t custom_code;
-    ObjectHandle handle;
+    std::shared_ptr<ManagedObject> managed_object;
 };
 
 // Struct size and layout needs to match with the C# side

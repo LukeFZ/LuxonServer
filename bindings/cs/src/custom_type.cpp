@@ -17,12 +17,15 @@ bool CustomTypeRegistry::is_registered(const uint8_t code) { return registered_c
 
 luxon::ser::RawCustomValue CustomTypeRegistry::serialize_value(const ParsedCustomValue& value) {
     uint8_t *buffer = nullptr;
-    const auto size = interface_.serialize_custom_type(value.custom_code, value.handle, &buffer);
+    const auto size = interface_.serialize_custom_type(value.custom_code, value.managed_object->handle(), &buffer);
 
-    return luxon::ser::RawCustomValue{.custom_code = value.custom_code, .data = luxon::ser::ByteArray(buffer, buffer + size)};
+    const auto allocation = ManagedAllocation(buffer, size);
+    const auto span = allocation.span();
+
+    return luxon::ser::RawCustomValue{.custom_code = value.custom_code, .data = luxon::ser::ByteArray(span.begin(), span.end())};
 }
 
 ParsedCustomValue CustomTypeRegistry::deserialize_value(const luxon::ser::RawCustomValue& value) {
     const auto handle = interface_.deserialize_custom_type(value.custom_code, value.data.data(), value.data.size());
-    return ParsedCustomValue{.custom_code = value.custom_code, .handle = handle};
+    return ParsedCustomValue{.custom_code = value.custom_code, .managed_object = std::make_shared<ManagedObject>(handle)};
 }

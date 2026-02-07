@@ -15,6 +15,8 @@ public static unsafe class PluginManager
 
     private static void RegisterPluginManager()
     {
+        ObjectManager.RegisterObjectManager();
+
         var managerInterface = new PluginManagerInterface
         {
             CreatePluginInstance = &CreatePluginInstance,
