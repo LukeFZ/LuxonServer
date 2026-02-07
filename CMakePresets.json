@@ -46,6 +46,15 @@
       "displayName": "RelWithDebInfo",
       "inherits": "default",
       "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
+      "name": "CSharpBindingsDebug",
+      "displayName": "C# Bindings (Debug)",
+      "inherits": "Debug",
+      "cacheVariables": {
+        "LUXON_SERVER_ENABLE_PLUGINS": true,
+        "LUXON_PLUGINS": "${sourceDir}/bindings/cs"
+      }
     }
   ]
 }

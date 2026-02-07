@@ -84,3 +84,7 @@ CMakeLists.txt.user*
 # Files + Folders generated when using Visual Studio
 .vs
 out
+
+# C# Files
+bindings/cs/LuxonServer/bin
+bindings/cs/LuxonServer/obj
