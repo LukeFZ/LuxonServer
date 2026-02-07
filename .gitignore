@@ -86,5 +86,5 @@ CMakeLists.txt.user*
 out
 
 # C# Files
-bindings/cs/LuxonServer/bin
-bindings/cs/LuxonServer/obj
+bindings/cs/**/bin
+bindings/cs/**/obj
