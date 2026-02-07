@@ -21,6 +21,7 @@ public sealed class ServerContext : IDisposable
 
     public void Run()
     {
+        NativeMethods.luxon_csharp_server_context_setup(Handle);
         NativeMethods.luxon_csharp_server_context_run(Handle);
     }
 
@@ -29,7 +30,7 @@ public sealed class ServerContext : IDisposable
         NativeMethods.luxon_csharp_server_context_stop(Handle);
     }
 
-    public void Configure(string name, IPEndPoint endpoint, bool external)
+    public void Configure(string name, IPEndPoint endpoint, bool external = false)
     {
         var address = endpoint.Address.ToString();
         var port = (ushort)endpoint.Port;

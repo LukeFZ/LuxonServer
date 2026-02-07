@@ -13,11 +13,8 @@ public static unsafe class PluginManager
     private static HandleProvider _handleProvider;
     private static bool _registered;
 
-    public static void RegisterPluginManager()
+    private static void RegisterPluginManager()
     {
-        if (_registered)
-            return;
-
         var managerInterface = new PluginManagerInterface
         {
             CreatePluginInstance = &CreatePluginInstance,
@@ -27,19 +24,23 @@ public static unsafe class PluginManager
         };
 
         NativeMethods.luxon_csharp_set_plugin_manager(&managerInterface);
-
-        _registered = true;
     }
 
     public static void RegisterPlugin<T>(string name, Func<T> factory) where T : IPlugin
     {
+        if (!_registered)
+        {
+            RegisterPluginManager();
+            _registered = true;
+        }
+
         PluginFactories[name] = () => factory();
 
         NativeMethods.luxon_csharp_register_plugin(name);
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginInstanceHandle CreatePluginInstance(byte* name)
+    private static PluginInstanceHandle CreatePluginInstance(byte* name)
     {
         var nameStr = Marshal.PtrToStringUTF8((nint)name);
         Debug.Assert(nameStr != null);
@@ -53,7 +54,7 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static void DestroyPluginInstance(PluginInstanceHandle handle)
+    private static void DestroyPluginInstance(PluginInstanceHandle handle)
     {
         Debug.Assert(InstantiatedPlugins.ContainsKey(handle));
         if (InstantiatedPlugins.Remove(handle, out var plugin))
@@ -63,7 +64,7 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnAttach(PluginInstanceHandle handle)
+    private static PluginResult OnAttach(PluginInstanceHandle handle)
     {
         if (InstantiatedPlugins.TryGetValue(handle, out var plugin))
         {
@@ -74,7 +75,7 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnCreateGame(PluginInstanceHandle handle)
+    private static PluginResult OnCreateGame(PluginInstanceHandle handle)
     {
         if (InstantiatedPlugins.TryGetValue(handle, out var plugin))
         {
@@ -85,49 +86,49 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult BeforeJoin()
+    private static PluginResult BeforeJoin()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnJoinGame()
+    private static PluginResult OnJoinGame()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnLeave()
+    private static PluginResult OnLeave()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnRaiseEvent()
+    private static PluginResult OnRaiseEvent()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult BeforeSetProperties()
+    private static PluginResult BeforeSetProperties()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnSetProperties()
+    private static PluginResult OnSetProperties()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult BeforeCloseGame()
+    private static PluginResult BeforeCloseGame()
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    public static PluginResult OnCloseGame()
+    private static PluginResult OnCloseGame()
     {
         return PluginResult.Continue;
     }

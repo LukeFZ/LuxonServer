@@ -16,6 +16,9 @@ internal static unsafe partial class NativeMethods
     internal static partial void luxon_csharp_server_context_run(ServerContextHandle handle);
 
     [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_server_context_setup(ServerContextHandle handle);
+
+    [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_server_context_stop(ServerContextHandle handle);
 
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
