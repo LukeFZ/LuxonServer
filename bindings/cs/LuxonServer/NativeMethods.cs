@@ -9,6 +9,8 @@ internal static unsafe partial class NativeMethods
 {
     private const string LibraryName = "luxon_server";
 
+    // Server
+
     [LibraryImport(LibraryName)]
     internal static partial ServerContextHandle luxon_csharp_server_context_create();
 
@@ -28,17 +30,24 @@ internal static unsafe partial class NativeMethods
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_server_context_destroy(ServerContextHandle handle);
 
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_register_custom_type(byte code,
-        delegate* unmanaged[Cdecl]<CustomObjectHandle, ref byte*, ref nuint, void> serializer,
-        delegate* unmanaged[Cdecl]<byte*, nuint, CustomObjectHandle> deserializer);
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_unregister_custom_type(byte code);
+    // Plugin Manager
 
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_set_plugin_manager(PluginManagerInterface* pluginInterface);
 
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_register_plugin(string name);
+
+    // Custom Type Registry
+
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_register_custom_type(byte code);
+
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_unregister_custom_type(byte code);
+
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_set_custom_type_registry(CustomTypeRegistryInterface* registryInterface);
+
+
 }

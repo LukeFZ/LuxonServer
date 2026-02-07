@@ -2,7 +2,7 @@
 
 public struct HandleProvider
 {
-    private nuint _nextHandle;
+    private uint _nextHandle;
 
     public nuint AcquireHandle()
         => Interlocked.Increment(ref _nextHandle);

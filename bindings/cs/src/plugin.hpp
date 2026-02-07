@@ -2,7 +2,7 @@
 
 #include <luxon/server/game_plugin_base.hpp>
 
-using PluginInstanceHandle = uint64_t;
+using PluginInstanceHandle = uintptr_t;
 
 // Struct size and layout needs to match with the C# side
 struct PluginManagerInterface {

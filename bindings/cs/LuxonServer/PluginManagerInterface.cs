@@ -15,8 +15,10 @@ internal unsafe struct PluginManagerInterface
     internal delegate* unmanaged[Cdecl]<PluginInstanceHandle, PluginResult> OnAttach;
     internal delegate* unmanaged[Cdecl]<PluginInstanceHandle, PluginResult> OnCreateGame;
 
+#if DEBUG
     static PluginManagerInterface()
     {
         Debug.Assert(Unsafe.SizeOf<PluginManagerInterface>() == sizeof(nuint) * 4);
     }
+#endif
 }

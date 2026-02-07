@@ -17,13 +17,12 @@ bool CustomTypeRegistry::is_registered(const uint8_t code) { return registered_c
 
 luxon::ser::RawCustomValue CustomTypeRegistry::serialize_value(const ParsedCustomValue& value) {
     uint8_t *buffer = nullptr;
-    size_t size = 0;
-    interface_.serialize(value.handle, &buffer, &size);
+    const auto size = interface_.serialize_custom_type(value.custom_code, value.handle, &buffer);
 
     return luxon::ser::RawCustomValue{.custom_code = value.custom_code, .data = luxon::ser::ByteArray(buffer, buffer + size)};
 }
 
 ParsedCustomValue CustomTypeRegistry::deserialize_value(const luxon::ser::RawCustomValue& value) {
-    const auto handle = interface_.deserialize(value.data.data(), value.data.size());
+    const auto handle = interface_.deserialize_custom_type(value.custom_code, value.data.data(), value.data.size());
     return ParsedCustomValue{.custom_code = value.custom_code, .handle = handle};
 }
