@@ -14,7 +14,7 @@ std::unordered_map<std::string, PluginFactory> *plugins{};
 
 bool register_(const std::string& name, PluginFactory&& plugin_factory) {
     if (!plugins)
-        plugins = new typeof(*plugins);
+        plugins = new std::unordered_map<std::string, PluginFactory>();
     return plugins->emplace(name, std::move(plugin_factory)).second;
 }
 
