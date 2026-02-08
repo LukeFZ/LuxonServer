@@ -1,19 +1,32 @@
 #include "plugin.hpp"
 
 #include "export.hpp"
-#include "luxon/server/game_plugin_registry.hpp"
+#include "threading.hpp"
+
+#include <luxon/server/game.hpp>
+#include <luxon/server/game_plugin_registry.hpp>
+
+#ifdef interface
+#undef interface
+#endif
 
 namespace {
 PluginManagerInterface plugin_manager_interface;
+server::logger logger("CSharpPlugin");
 }
 
 CSHARP_API void luxon_csharp_set_plugin_manager(const PluginManagerInterface *interface) { plugin_manager_interface = *interface; }
 
 CSHARP_API void luxon_csharp_register_plugin(const char* name) {
     const auto name_str = std::string(name);
+    logger.info("Registering C# plugin: {}", name_str);
     
-    server::game_plugins::registry::register_(name_str, [&name_str](server::Game *game) { 
-        const auto handle = plugin_manager_interface.create_plugin_instance(name_str.c_str());
+    server::game_plugins::registry::register_(name_str, [name_str](server::Game *game) {
+        ObjectHandle handle = 0;
+
+        ensure_non_coroutine_call(game->app->server_manager,
+                                  [&handle, &name_str] { handle = plugin_manager_interface.create_plugin_instance(name_str.c_str()); });
+
         return std::make_unique<CSharpPlugin>(game, name_str, std::make_shared<ManagedObject>(handle));
     });
 }
@@ -21,13 +34,19 @@ CSHARP_API void luxon_csharp_register_plugin(const char* name) {
 CSharpPlugin::CSharpPlugin(server::Game *game, const std::string_view plugin_name, std::shared_ptr<ManagedObject> object) 
     : PluginBase(game, plugin_name), object_(std::move(object)) { }
 
-CSharpPlugin::~CSharpPlugin() { plugin_manager_interface.destroy_plugin_instance(object_->handle()); }
+CSharpPlugin::~CSharpPlugin() {
+    ensure_non_coroutine_call(game_->app->server_manager, [this] { plugin_manager_interface.destroy_plugin_instance(object_->handle()); });
+}
 
-void CSharpPlugin::OnAttach() { plugin_manager_interface.on_attach(object_->handle()); }
+void CSharpPlugin::OnAttach() { 
+    ensure_non_coroutine_call(game_->app->server_manager, [this] { plugin_manager_interface.on_attach(object_->handle()); });
+}
 
 server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationRequestMessage &req,
     server::game_plugins::OnCreateGameCallInfo &onCreateGameCallInfo) {
-    return plugin_manager_interface.on_create_game(object_->handle());
+    server::game_plugins::Result result{};
+    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.on_create_game(object_->handle()); });
+    return result;
 }
 
 server::game_plugins::Result CSharpPlugin::BeforeJoin(luxon::ser::OperationRequestMessage &req,

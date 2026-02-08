@@ -8,7 +8,7 @@ if (MSVC)
     add_compile_definitions(NOMINMAX)
 endif()
 
-file(GLOB SOURCE_FILES "src/*.cpp" "src/*.hpp")
+file(GLOB SOURCE_FILES CONFIGURE_DEPENDS "src/*.cpp" "src/*.hpp")
 
 add_library(luxon_csharp_plugin STATIC ${SOURCE_FILES})
 

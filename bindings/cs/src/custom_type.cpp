@@ -1,7 +1,7 @@
+#include <unordered_set>
+
 #include "custom_type.hpp"
 #include "export.hpp"
-
-#include <unordered_set>
 
 namespace {
 std::unordered_set<uint8_t> registered_codes;
