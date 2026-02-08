@@ -1,25 +1,25 @@
 ﻿namespace LuxonServer.Example;
 
-public sealed class TestPlugin : IPlugin
+public sealed class TestPlugin : GamePlugin
 {
     public TestPlugin()
     {
         Console.WriteLine("TestPlugin: created");
     }
 
-    public PluginResult OnAttach()
+    public override PluginResult OnAttach()
     {
         Console.WriteLine("TestPlugin: OnAttach");
         return PluginResult.Continue;
     }
 
-    public PluginResult OnCreateGame()
+    public override PluginResult OnCreateGame()
     {
         Console.WriteLine("TestPlugin: OnCreateGame");
         return PluginResult.Continue;
     }
 
-    public void Dispose()
+    protected override void Dispose(bool disposing)
     {
         Console.WriteLine("Disposing TestPlugin");
     }

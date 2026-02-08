@@ -7,7 +7,7 @@ public static class Extensions
 {
     extension(PluginManager)
     {
-        public static void RegisterPlugin<T>(string name) where T : IPlugin, new()
+        public static void RegisterPlugin<T>(string name) where T : GamePlugin, new()
             => PluginManager.RegisterPlugin(name, () => new T());
     }
 

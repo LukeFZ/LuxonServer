@@ -6,7 +6,7 @@ namespace LuxonServer;
 
 public static unsafe class PluginManager
 {
-    private static readonly Dictionary<string, Func<IPlugin>> PluginFactories = new();
+    private static readonly Dictionary<string, Func<GamePlugin>> PluginFactories = new();
     private static bool _registered;
 
     private static void RegisterPluginManager()
@@ -24,7 +24,7 @@ public static unsafe class PluginManager
         NativeMethods.luxon_csharp_set_plugin_manager(&managerInterface);
     }
 
-    public static void RegisterPlugin<T>(string name, Func<T> factory) where T : IPlugin
+    public static void RegisterPlugin<T>(string name, Func<T> factory) where T : GamePlugin
     {
         if (!_registered)
         {
@@ -32,7 +32,7 @@ public static unsafe class PluginManager
             _registered = true;
         }
 
-        PluginFactories[name] = () => factory();
+        PluginFactories[name] = factory;
 
         NativeMethods.luxon_csharp_register_plugin(name);
     }
@@ -52,19 +52,19 @@ public static unsafe class PluginManager
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static void DestroyPluginInstance(ObjectHandle handle)
     {
-        handle.ToManagedObject<IPlugin>().Dispose();
+        handle.ToManagedObject<GamePlugin>().Dispose();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static PluginResult OnAttach(ObjectHandle handle)
     {
-        return handle.ToManagedObject<IPlugin>().OnAttach();
+        return handle.ToManagedObject<GamePlugin>().OnAttach();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static PluginResult OnCreateGame(ObjectHandle handle)
     {
-        return handle.ToManagedObject<IPlugin>().OnCreateGame();
+        return handle.ToManagedObject<GamePlugin>().OnCreateGame();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
