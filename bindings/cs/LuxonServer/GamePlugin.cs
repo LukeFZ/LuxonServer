@@ -4,6 +4,8 @@ public abstract class GamePlugin : IDisposable
 {
     public abstract PluginResult OnAttach();
     public abstract PluginResult OnCreateGame();
+    public abstract PluginResult BeforeJoinGame();
+    public abstract PluginResult OnJoinGame();
 
     ~GamePlugin()
     {

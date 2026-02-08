@@ -19,6 +19,18 @@ public sealed class TestPlugin : GamePlugin
         return PluginResult.Continue;
     }
 
+    public override PluginResult BeforeJoinGame()
+    {
+        Console.WriteLine("TestPlugin: BeforeJoinGame");
+        return PluginResult.Continue;
+    }
+
+    public override PluginResult OnJoinGame()
+    {
+        Console.WriteLine("TestPlugin: OnJoinGame");
+        return PluginResult.Continue;
+    }
+
     protected override void Dispose(bool disposing)
     {
         Console.WriteLine("Disposing TestPlugin");

@@ -6,12 +6,16 @@
 
 // Struct size and layout needs to match with the C# side
 struct PluginManagerInterface {
+    static constexpr auto kFunctionPointerCount = 6;
+
     ObjectHandle (*create_plugin_instance)(const char *plugin_name);
     void (*destroy_plugin_instance)(ObjectHandle handle);
     server::game_plugins::Result (*on_attach)(ObjectHandle handle);
     server::game_plugins::Result (*on_create_game)(ObjectHandle handle);
+    server::game_plugins::Result (*before_join)(ObjectHandle handle);
+    server::game_plugins::Result (*on_join_game)(ObjectHandle handle);
 };
-static_assert(sizeof(PluginManagerInterface) == sizeof(uintptr_t) * 4);
+static_assert(sizeof(PluginManagerInterface) == sizeof(uintptr_t) * PluginManagerInterface::kFunctionPointerCount);
 
 class CSharpPlugin : public server::game_plugins::PluginBase {
 public:

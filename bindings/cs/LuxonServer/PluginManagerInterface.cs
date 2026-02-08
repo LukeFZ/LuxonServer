@@ -8,15 +8,19 @@ namespace LuxonServer;
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct PluginManagerInterface
 {
+    private const int FunctionPointerCount = 6;
+
     internal delegate* unmanaged[Cdecl]<byte*, ObjectHandle> CreatePluginInstance;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, void> DestroyPluginInstance;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnAttach;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnCreateGame;
+    internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> BeforeJoin;
+    internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnJoinGame;
 
 #if DEBUG
     static PluginManagerInterface()
     {
-        Debug.Assert(Unsafe.SizeOf<PluginManagerInterface>() == sizeof(nuint) * 4);
+        Debug.Assert(Unsafe.SizeOf<PluginManagerInterface>() == sizeof(nuint) * FunctionPointerCount);
     }
 #endif
 }

@@ -19,6 +19,8 @@ public static unsafe class PluginManager
             DestroyPluginInstance = &DestroyPluginInstance,
             OnAttach = &OnAttach,
             OnCreateGame = &OnCreateGame,
+            BeforeJoin = &BeforeJoinGame,
+            OnJoinGame = &OnJoinGame,
         };
 
         NativeMethods.luxon_csharp_set_plugin_manager(&managerInterface);
@@ -68,49 +70,49 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult BeforeJoin()
+    private static PluginResult BeforeJoinGame(ObjectHandle handle)
+    {
+        return handle.ToManagedObject<GamePlugin>().BeforeJoinGame();
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static PluginResult OnJoinGame(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnJoinGame()
+    private static PluginResult OnLeave(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnLeave()
+    private static PluginResult OnRaiseEvent(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnRaiseEvent()
+    private static PluginResult BeforeSetProperties(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult BeforeSetProperties()
+    private static PluginResult OnSetProperties(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnSetProperties()
+    private static PluginResult BeforeCloseGame(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult BeforeCloseGame()
-    {
-        return PluginResult.Continue;
-    }
-
-    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnCloseGame()
+    private static PluginResult OnCloseGame(ObjectHandle handle)
     {
         return PluginResult.Continue;
     }

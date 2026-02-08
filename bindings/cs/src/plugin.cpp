@@ -51,11 +51,15 @@ server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationReq
 
 server::game_plugins::Result CSharpPlugin::BeforeJoin(luxon::ser::OperationRequestMessage &req,
     server::game_plugins::BeforeJoinGameCallInfo &beforeJoinGameCallInfo) {
-    return PluginBase::BeforeJoin(req, beforeJoinGameCallInfo);
+    server::game_plugins::Result result{};
+    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.before_join(object_->handle()); });
+    return result;
 }
 
 server::game_plugins::Result CSharpPlugin::OnJoinGame(luxon::ser::OperationRequestMessage &req, server::game_plugins::OnJoinGameCallInfo &onJoinGameCallInfo) {
-    return PluginBase::OnJoinGame(req, onJoinGameCallInfo);
+    server::game_plugins::Result result{};
+    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.on_join_game(object_->handle()); });
+    return result;
 }
 
 server::game_plugins::Result CSharpPlugin::OnLeave(luxon::ser::OperationRequestMessage &req, server::game_plugins::OnLeaveGameCallInfo &onLeaveGameCallInfo) {
