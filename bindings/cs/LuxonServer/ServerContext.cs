@@ -30,8 +30,9 @@ public sealed class ServerContext : IDisposable
 
     public void Configure(string name, IPEndPoint endpoint, bool external = false)
     {
-        var address = endpoint.Address.ToString();
+        var address = endpoint.ToString();
         var port = (ushort)endpoint.Port;
+
         NativeMethods.luxon_csharp_server_context_configure_server(Handle, name, address, port, external);
     }
 

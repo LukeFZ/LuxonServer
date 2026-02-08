@@ -45,6 +45,7 @@ public static unsafe class PluginManager
         Debug.Assert(PluginFactories.ContainsKey(nameStr));
 
         var plugin = PluginFactories[nameStr]();
+
         return plugin.ToNativeHandle();
     }
 
