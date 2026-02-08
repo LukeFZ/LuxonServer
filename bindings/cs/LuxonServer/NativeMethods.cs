@@ -2,9 +2,6 @@
 
 namespace LuxonServer;
 
-using ServerContextHandle = nuint;
-using CustomObjectHandle = nuint;
-
 internal static unsafe partial class NativeMethods
 {
     private const string LibraryName = "luxon_server";

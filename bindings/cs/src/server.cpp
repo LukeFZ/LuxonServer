@@ -7,7 +7,7 @@ struct ServerContext {
     server::ServerManager manager;
 };
 
-using ServerContextHandle = uintptr_t;
+using ServerContextHandle = intptr_t;
 
 namespace {
 std::unordered_map<ServerContextHandle, std::unique_ptr<ServerContext>> server_contexts;

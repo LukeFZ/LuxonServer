@@ -4,8 +4,6 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-using ObjectHandle = nint;
-
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct CustomTypeRegistryInterface
 {

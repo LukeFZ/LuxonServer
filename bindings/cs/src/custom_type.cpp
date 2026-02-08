@@ -3,18 +3,16 @@
 
 #include <unordered_set>
 
+namespace {
+std::unordered_set<uint8_t> registered_codes;
+CustomTypeRegistryInterface custom_type_registry_interface;
+} // namespace
+
 CSHARP_API void luxon_csharp_register_custom_type(const uint8_t code) { CustomTypeRegistry::register_custom_type(code); }
 
 CSHARP_API void luxon_csharp_unregister_custom_type(const uint8_t code) { CustomTypeRegistry::unregister_custom_type(code); }
 
-CSHARP_API void luxon_csharp_set_custom_type_registry(const CustomTypeRegistryInterface *interface) { CustomTypeRegistry::set_interface(interface); }
-
-namespace {
-std::unordered_set<uint8_t> registered_codes;
-CustomTypeRegistryInterface custom_type_registry_interface;
-}
-
-void CustomTypeRegistry::set_interface(const CustomTypeRegistryInterface *interface) { custom_type_registry_interface = *interface; }
+CSHARP_API void luxon_csharp_set_custom_type_registry(const CustomTypeRegistryInterface *interface) { custom_type_registry_interface = *interface; }
 
 void CustomTypeRegistry::register_custom_type(const uint8_t code) { registered_codes.emplace(code); }
 

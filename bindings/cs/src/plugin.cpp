@@ -14,22 +14,20 @@ CSHARP_API void luxon_csharp_register_plugin(const char* name) {
     
     server::game_plugins::registry::register_(name_str, [&name_str](server::Game *game) { 
         const auto handle = plugin_manager_interface.create_plugin_instance(name_str.c_str());
-        return std::make_unique<CSharpPlugin>(game, name_str, handle);
+        return std::make_unique<CSharpPlugin>(game, name_str, std::make_shared<ManagedObject>(handle));
     });
 }
 
-CSharpPlugin::CSharpPlugin(server::Game *game, const std::string_view plugin_name, const PluginInstanceHandle handle) 
-    : PluginBase(game, plugin_name), handle_(handle) { }
+CSharpPlugin::CSharpPlugin(server::Game *game, const std::string_view plugin_name, std::shared_ptr<ManagedObject> object) 
+    : PluginBase(game, plugin_name), object_(std::move(object)) { }
 
-CSharpPlugin::~CSharpPlugin() { plugin_manager_interface.destroy_plugin_instance(handle_); }
+CSharpPlugin::~CSharpPlugin() { plugin_manager_interface.destroy_plugin_instance(object_->handle()); }
 
-void CSharpPlugin::OnAttach() {
-    plugin_manager_interface.on_attach(handle_);
-}
+void CSharpPlugin::OnAttach() { plugin_manager_interface.on_attach(object_->handle()); }
 
 server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationRequestMessage &req,
     server::game_plugins::OnCreateGameCallInfo &onCreateGameCallInfo) {
-    return plugin_manager_interface.on_create_game(handle_);
+    return plugin_manager_interface.on_create_game(object_->handle());
 }
 
 server::game_plugins::Result CSharpPlugin::BeforeJoin(luxon::ser::OperationRequestMessage &req,

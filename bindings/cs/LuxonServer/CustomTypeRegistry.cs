@@ -44,6 +44,14 @@ public static unsafe class CustomTypeRegistry
         NativeMethods.luxon_csharp_register_custom_type(code);
     }
 
+    public static void UnregisterType(byte code)
+    {
+        if (CustomTypes.Remove(code))
+        {
+            NativeMethods.luxon_csharp_unregister_custom_type(code);
+        }
+    }
+
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static nuint SerializeCustomType(byte code, ObjectHandle handle, byte** data)
     {

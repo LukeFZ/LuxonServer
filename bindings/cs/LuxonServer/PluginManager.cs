@@ -4,13 +4,9 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-using PluginInstanceHandle = nuint;
-
 public static unsafe class PluginManager
 {
-    private static readonly Dictionary<PluginInstanceHandle, IPlugin> InstantiatedPlugins = new();
     private static readonly Dictionary<string, Func<IPlugin>> PluginFactories = new();
-    private static HandleProvider _handleProvider;
     private static bool _registered;
 
     private static void RegisterPluginManager()
@@ -42,49 +38,32 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginInstanceHandle CreatePluginInstance(byte* name)
+    private static ObjectHandle CreatePluginInstance(byte* name)
     {
         var nameStr = Marshal.PtrToStringUTF8((nint)name);
         Debug.Assert(nameStr != null);
         Debug.Assert(PluginFactories.ContainsKey(nameStr));
 
-        var handle = _handleProvider.AcquireHandle();
         var plugin = PluginFactories[nameStr]();
-        InstantiatedPlugins[handle] = plugin;
-
-        return handle;
+        return plugin.ToNativeHandle();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static void DestroyPluginInstance(PluginInstanceHandle handle)
+    private static void DestroyPluginInstance(ObjectHandle handle)
     {
-        Debug.Assert(InstantiatedPlugins.ContainsKey(handle));
-        if (InstantiatedPlugins.Remove(handle, out var plugin))
-        {
-            plugin.Dispose();
-        }
+        handle.ToManagedObject<IPlugin>().Dispose();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnAttach(PluginInstanceHandle handle)
+    private static PluginResult OnAttach(ObjectHandle handle)
     {
-        if (InstantiatedPlugins.TryGetValue(handle, out var plugin))
-        {
-            return plugin.OnAttach();
-        }
-
-        return PluginResult.Continue;
+        return handle.ToManagedObject<IPlugin>().OnAttach();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnCreateGame(PluginInstanceHandle handle)
+    private static PluginResult OnCreateGame(ObjectHandle handle)
     {
-        if (InstantiatedPlugins.TryGetValue(handle, out var plugin))
-        {
-            return plugin.OnAttach();
-        }
-
-        return PluginResult.Continue;
+        return handle.ToManagedObject<IPlugin>().OnCreateGame();
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]

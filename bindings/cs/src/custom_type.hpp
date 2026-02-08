@@ -20,8 +20,6 @@ static_assert(sizeof(CustomTypeRegistryInterface) == sizeof(uintptr_t) * 2);
 
 class CustomTypeRegistry {
 public:
-    static void set_interface(const CustomTypeRegistryInterface *interface);
-
     static void register_custom_type(uint8_t code);
     static void unregister_custom_type(uint8_t code);
     static bool is_registered(uint8_t code);

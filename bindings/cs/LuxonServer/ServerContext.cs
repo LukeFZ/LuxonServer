@@ -2,8 +2,6 @@
 
 namespace LuxonServer;
 
-using ServerContextHandle = nuint;
-
 public sealed class ServerContext : IDisposable
 {
     internal ServerContextHandle Handle { get; }
