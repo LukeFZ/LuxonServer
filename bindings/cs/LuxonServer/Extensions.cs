@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace LuxonServer;
 
@@ -9,6 +10,12 @@ public static class Extensions
     {
         public static void RegisterPlugin<T>(string name) where T : GamePlugin, new()
             => PluginManager.RegisterPlugin(name, () => new T());
+    }
+
+    extension(ServerContext context)
+    {
+        public void RegisterServer<T>(string name) where T : HandlerBase, new()
+            => context.RegisterServer(name, () => new T());
     }
 
     extension<T>(T value)
