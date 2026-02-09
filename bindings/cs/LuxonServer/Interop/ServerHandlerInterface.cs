@@ -19,7 +19,7 @@ internal unsafe struct ServerHandlerInterface
     public void* Reserved1; // ENetCommand
     public void* Reserved2; // HTTPRequest
     public void* Reserved3; // InitRequest
-    public void* Reserved4; // OperationRequest
+    public delegate* unmanaged[Cdecl]<ObjectHandle, NativeOperationRequestMessage*, byte, EnetCommandHeader*, FunctionResult> HandleOperationRequest;
     public void* Reserved5; // InternalOperationRequest
 
 #if DEBUG

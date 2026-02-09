@@ -32,4 +32,15 @@ public class TestServer : HandlerBase
         Console.WriteLine("TestServer: HandleSlowUpdate");
         return base.HandleSlowUpdate();
     }
+
+    protected override FunctionResult HandleOperationRequest(OperationRequestMessage message, bool isEncrypted, in EnetCommandHeader header)
+    {
+        Console.WriteLine($"TestServer: HandleOperationRequest: {message}, {isEncrypted}, {header}");
+        return base.HandleOperationRequest(message, isEncrypted, in header);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+    }
 }

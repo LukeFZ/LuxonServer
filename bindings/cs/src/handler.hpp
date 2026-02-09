@@ -3,6 +3,7 @@
 #include <luxon/server/handler_base.hpp>
 
 #include "object_management.hpp"
+#include "plugin.hpp"
 
 enum class FunctionResult : uint8_t {
     Return = 0,
@@ -22,7 +23,8 @@ struct ServerHandlerInterface {
     void *reserved1; // ENetCommand
     void *reserved2; // HTTPRequest
     void *reserved3; // InitRequest
-    void *reserved4; // OperationRequest
+    FunctionResult (*handle_operation_request)(ObjectHandle handle, NativeOperationRequestMessage *message, bool is_encrypted,
+                                               const luxon::enet::EnetCommandHeader *header); // OperationRequest
     void *reserved5; // InternalOperationRequest
 };
 static_assert(sizeof(ServerHandlerInterface) == sizeof(uintptr_t) * ServerHandlerInterface::kFunctionPointerCount);

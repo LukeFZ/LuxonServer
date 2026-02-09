@@ -1,6 +1,7 @@
 #include "handler.hpp"
 #include "export.hpp"
 #include "threading.hpp"
+#include "variant_serialization.hpp"
 
 #ifdef interface
 #undef interface
@@ -73,7 +74,21 @@ void CSharpHandler::HandleInitRequest(luxon::ser::InitMessage &req, const luxon:
 }
 
 void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &req, bool is_encrypted, const luxon::enet::EnetCommandHeader &cmd_header) {
-    HandlerBase::HandleOperationRequest(req, is_encrypted, cmd_header);
+    auto result = FunctionResult::Return;
+    ensure_non_coroutine_call(server_manager_, [&] {
+        const auto serialized_parameters = serialize_variant(req.parameters);
+
+        NativeOperationRequestMessage message;
+        message.operation_code = req.operation_code;
+        message.serialized_parameters = serialized_parameters.data();
+        message.serialized_parameters_length = serialized_parameters.size();
+        
+        result = server_handler_interface.handle_operation_request(object_->handle(), &message, is_encrypted, &cmd_header);
+    });
+
+    if (result == FunctionResult::CallBase) {
+        return HandlerBase::HandleSlowUpdate();
+    }
 }
 
 void CSharpHandler::HandleInternalOperationRequest(luxon::ser::InternalOperationRequestMessage &req, bool is_encrypted,

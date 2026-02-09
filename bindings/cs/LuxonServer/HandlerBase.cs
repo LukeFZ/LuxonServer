@@ -1,5 +1,6 @@
 ﻿using LuxonServer.Interop;
 using LuxonServer.Models;
+using LuxonServer.Serialization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -13,6 +14,9 @@ public abstract class HandlerBase : IDisposable
     protected virtual FunctionResult HandleDisconnect() => FunctionResult.CallBase;
     protected virtual FunctionResult HandleUpdate() => FunctionResult.CallBase;
     protected virtual FunctionResult HandleSlowUpdate() => FunctionResult.CallBase;
+
+    protected virtual FunctionResult HandleOperationRequest(OperationRequestMessage message, bool isEncrypted,
+        in EnetCommandHeader header) => FunctionResult.CallBase;
 
     protected virtual void Dispose(bool disposing)
     {
@@ -37,6 +41,7 @@ public abstract class HandlerBase : IDisposable
             HandleDisconnect = &HandleDisconnect,
             HandleUpdate = &HandleUpdate,
             HandleSlowUpdate = &HandleSlowUpdate,
+            HandleOperationRequest = &HandleOperationRequest
         };
         NativeMethods.luxon_csharp_set_server_handler(&serverHandlerInterface);
 
@@ -62,4 +67,18 @@ public abstract class HandlerBase : IDisposable
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static FunctionResult HandleSlowUpdate(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleSlowUpdate();
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static unsafe FunctionResult HandleOperationRequest(ObjectHandle handle,
+        NativeOperationRequestMessage* message, byte isEncrypted, EnetCommandHeader* header)
+    {
+        var data = new ReadOnlySpan<byte>(message->SerializedParameters, (int)message->SerializedParametersLength);
+        var parsed = ValueSerialization.DeserializeAs<Dictionary<byte, object?>>(data);
+        var operationRequestMessage = new OperationRequestMessage(message->OperationCode, parsed);
+
+        var isEncryptedBool = isEncrypted == 1;
+        var enetHeader = *header;
+
+        return handle.ToManagedObject<HandlerBase>().HandleOperationRequest(operationRequestMessage, isEncryptedBool, enetHeader);
+    }
 }
