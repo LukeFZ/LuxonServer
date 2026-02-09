@@ -1,6 +1,7 @@
-﻿using System.Runtime.CompilerServices;
+﻿using LuxonServer.Interop;
+using LuxonServer.Models;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using LuxonServer.Interop;
 
 namespace LuxonServer;
 
@@ -8,9 +9,9 @@ public abstract class HandlerBase : IDisposable
 {
     private static bool _registered;
 
-    protected virtual void HandleConnect()
+    protected virtual FunctionResult HandleConnect()
     {
-
+        return FunctionResult.CallBase;
     }
 
     protected virtual void Dispose(bool disposing)
@@ -39,8 +40,6 @@ public abstract class HandlerBase : IDisposable
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static void HandleConnect(ObjectHandle handle)
-    {
-
-    }
+    private static FunctionResult HandleConnect(ObjectHandle handle)
+        => handle.ToManagedObject<HandlerBase>().HandleConnect();
 }

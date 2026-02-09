@@ -17,5 +17,10 @@ CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_p
 }
 
 void CSharpHandler::HandleConnect() {
-    ensure_non_coroutine_call(server_manager_, [this] { server_handler_interface.handle_connect(object_->handle()); });
+    auto result = FunctionResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_connect(object_->handle()); });
+
+    if (result == FunctionResult::CallBase) {
+        HandlerBase::HandleConnect();
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using LuxonServer.Models;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -9,7 +10,7 @@ internal unsafe struct ServerHandlerInterface
 {
     private const int FunctionCount = 1;
 
-    public delegate* unmanaged[Cdecl]<ObjectHandle, void> HandleConnect;
+    public delegate* unmanaged[Cdecl]<ObjectHandle, FunctionResult> HandleConnect;
 
 #if DEBUG
     static ServerHandlerInterface()

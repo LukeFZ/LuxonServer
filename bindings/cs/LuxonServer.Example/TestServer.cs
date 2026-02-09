@@ -1,4 +1,6 @@
-﻿namespace LuxonServer.Example;
+﻿using LuxonServer.Models;
+
+namespace LuxonServer.Example;
 
 public class TestServer : HandlerBase
 {
@@ -7,9 +9,9 @@ public class TestServer : HandlerBase
         Console.WriteLine("TestServer constructed");
     }
 
-    protected override void HandleConnect()
+    protected override FunctionResult HandleConnect()
     {
         Console.WriteLine("TestServer: HandleConnect");
-        base.HandleConnect();
+        return base.HandleConnect();
     }
 }
