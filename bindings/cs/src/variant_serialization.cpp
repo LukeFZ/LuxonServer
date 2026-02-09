@@ -6,8 +6,6 @@
 
 #include <luxon/ser_buffer.hpp>
 
-#include "custom_type.hpp"
-
 namespace {
 void serialize_value(luxon::ser::ByteWriter& writer, const luxon::ser::Value& value) {
     std::visit(

@@ -36,18 +36,8 @@ internal static unsafe partial class NativeMethods
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_register_plugin(string name);
 
-    // Custom Type Registry
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_register_custom_type(byte code);
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_unregister_custom_type(byte code);
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_custom_type_registry(CustomTypeRegistryInterface* registryInterface);
-
     // Object Manager
+
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_set_object_manager(ObjectManagerInterface* objectManagerInterface);
 }
