@@ -46,4 +46,7 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_set_object_manager(ObjectManagerInterface* objectManagerInterface);
+
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_set_server_handler(ServerHandlerInterface* serverHandlerInterface);
 }

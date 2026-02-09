@@ -47,6 +47,7 @@ public sealed class ServerContext : IDisposable
         {
             unsafe
             {
+                HandlerBase.Register();
                 NativeMethods.luxon_csharp_set_create_handler_callback(&CreateHandler);
             }
 

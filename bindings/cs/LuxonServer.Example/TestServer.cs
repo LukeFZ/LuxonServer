@@ -6,4 +6,10 @@ public class TestServer : HandlerBase
     {
         Console.WriteLine("TestServer constructed");
     }
+
+    protected override void HandleConnect()
+    {
+        Console.WriteLine("TestServer: HandleConnect");
+        base.HandleConnect();
+    }
 }
