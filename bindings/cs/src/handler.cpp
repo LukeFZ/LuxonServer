@@ -16,6 +16,8 @@ CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_p
     : HandlerBase(manager, peer), object_(std::move(object)) {
 }
 
+CSharpHandler::~CSharpHandler() = default;
+
 void CSharpHandler::HandleConnect() {
     auto result = FunctionResult::Return;
     ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_connect(object_->handle()); });
@@ -50,4 +52,29 @@ void CSharpHandler::HandleSlowUpdate() {
     if (result == FunctionResult::CallBase) {
         return HandlerBase::HandleSlowUpdate();
     }
+}
+
+void CSharpHandler::HandleENetConnectionStateChange(luxon::enet::EnetConnectionState state) {
+    HandlerBase::HandleENetConnectionStateChange(state);
+}
+
+void CSharpHandler::HandleENetCommand(const luxon::enet::EnetCommand &cmd) {
+    HandlerBase::HandleENetCommand(cmd);
+}
+
+void CSharpHandler::HandleHTTPRequest(const luxon::HttpRequest &request, const luxon::enet::EnetCommandHeader &cmd_header) {
+    HandlerBase::HandleHTTPRequest(request, cmd_header);
+}
+
+void CSharpHandler::HandleInitRequest(luxon::ser::InitMessage &req, const luxon::enet::EnetCommandHeader &cmd_header) {
+    HandlerBase::HandleInitRequest(req, cmd_header);
+}
+
+void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &req, bool is_encrypted, const luxon::enet::EnetCommandHeader &cmd_header) {
+    HandlerBase::HandleOperationRequest(req, is_encrypted, cmd_header);
+}
+
+void CSharpHandler::HandleInternalOperationRequest(luxon::ser::InternalOperationRequestMessage &req, bool is_encrypted,
+    const luxon::enet::EnetCommandHeader &cmd_header) {
+    HandlerBase::HandleInternalOperationRequest(req, is_encrypted, cmd_header);
 }
