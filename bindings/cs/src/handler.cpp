@@ -21,6 +21,33 @@ void CSharpHandler::HandleConnect() {
     ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_connect(object_->handle()); });
 
     if (result == FunctionResult::CallBase) {
-        HandlerBase::HandleConnect();
+        return HandlerBase::HandleConnect();
+    }
+}
+
+void CSharpHandler::HandleDisconnect() {
+    auto result = FunctionResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_disconnect(object_->handle()); });
+
+    if (result == FunctionResult::CallBase) {
+        return HandlerBase::HandleDisconnect();
+    }
+}
+
+void CSharpHandler::HandleUpdate() {
+    auto result = FunctionResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_update(object_->handle()); });
+
+    if (result == FunctionResult::CallBase) {
+        return HandlerBase::HandleUpdate();
+    }
+}
+
+void CSharpHandler::HandleSlowUpdate() {
+    auto result = FunctionResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_slow_update(object_->handle()); });
+
+    if (result == FunctionResult::CallBase) {
+        return HandlerBase::HandleSlowUpdate();
     }
 }

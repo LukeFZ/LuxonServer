@@ -9,10 +9,10 @@ public abstract class HandlerBase : IDisposable
 {
     private static bool _registered;
 
-    protected virtual FunctionResult HandleConnect()
-    {
-        return FunctionResult.CallBase;
-    }
+    protected virtual FunctionResult HandleConnect() => FunctionResult.CallBase;
+    protected virtual FunctionResult HandleDisconnect() => FunctionResult.CallBase;
+    protected virtual FunctionResult HandleUpdate() => FunctionResult.CallBase;
+    protected virtual FunctionResult HandleSlowUpdate() => FunctionResult.CallBase;
 
     protected virtual void Dispose(bool disposing)
     {
@@ -32,7 +32,10 @@ public abstract class HandlerBase : IDisposable
 
         var serverHandlerInterface = new ServerHandlerInterface
         {
-            HandleConnect = &HandleConnect
+            HandleConnect = &HandleConnect,
+            HandleDisconnect = &HandleDisconnect,
+            HandleUpdate = &HandleUpdate,
+            HandleSlowUpdate = &HandleSlowUpdate,
         };
         NativeMethods.luxon_csharp_set_server_handler(&serverHandlerInterface);
 
@@ -42,4 +45,16 @@ public abstract class HandlerBase : IDisposable
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static FunctionResult HandleConnect(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleConnect();
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static FunctionResult HandleDisconnect(ObjectHandle handle)
+        => handle.ToManagedObject<HandlerBase>().HandleDisconnect();
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static FunctionResult HandleUpdate(ObjectHandle handle)
+        => handle.ToManagedObject<HandlerBase>().HandleUpdate();
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static FunctionResult HandleSlowUpdate(ObjectHandle handle)
+        => handle.ToManagedObject<HandlerBase>().HandleSlowUpdate();
 }
