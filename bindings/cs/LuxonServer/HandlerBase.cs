@@ -32,6 +32,7 @@ public abstract class HandlerBase : IDisposable
 
         var serverHandlerInterface = new ServerHandlerInterface
         {
+            DestroyHandlerInstance = &DestroyHandlerInstance,
             HandleConnect = &HandleConnect,
             HandleDisconnect = &HandleDisconnect,
             HandleUpdate = &HandleUpdate,
@@ -41,6 +42,10 @@ public abstract class HandlerBase : IDisposable
 
         _registered = true;
     }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    private static void DestroyHandlerInstance(ObjectHandle handle)
+        => handle.ToManagedObject<HandlerBase>().Dispose();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
     private static FunctionResult HandleConnect(ObjectHandle handle)

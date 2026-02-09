@@ -16,7 +16,9 @@ CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_p
     : HandlerBase(manager, peer), object_(std::move(object)) {
 }
 
-CSharpHandler::~CSharpHandler() = default;
+CSharpHandler::~CSharpHandler() {
+    ensure_non_coroutine_call(server_manager_, [this] { server_handler_interface.destroy_handler_instance(object_->handle()); });
+}
 
 void CSharpHandler::HandleConnect() {
     auto result = FunctionResult::Return;

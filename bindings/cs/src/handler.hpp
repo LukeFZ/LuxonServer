@@ -11,8 +11,9 @@ enum class FunctionResult : uint8_t {
 
 // Struct size and layout needs to match with the C# side
 struct ServerHandlerInterface {
-    static constexpr auto kFunctionPointerCount = 10;
+    static constexpr auto kFunctionPointerCount = 11;
 
+    void (*destroy_handler_instance)(ObjectHandle handle);
     FunctionResult (*handle_connect)(ObjectHandle handle);
     FunctionResult (*handle_disconnect)(ObjectHandle handle);
     FunctionResult (*handle_update)(ObjectHandle handle);

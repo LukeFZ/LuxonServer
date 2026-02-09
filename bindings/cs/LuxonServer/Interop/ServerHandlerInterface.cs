@@ -8,8 +8,9 @@ namespace LuxonServer.Interop;
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct ServerHandlerInterface
 {
-    private const int FunctionCount = 10;
+    private const int FunctionCount = 11;
 
+    public delegate* unmanaged[Cdecl]<ObjectHandle, void> DestroyHandlerInstance;
     public delegate* unmanaged[Cdecl]<ObjectHandle, FunctionResult> HandleConnect;
     public delegate* unmanaged[Cdecl]<ObjectHandle, FunctionResult> HandleDisconnect;
     public delegate* unmanaged[Cdecl]<ObjectHandle, FunctionResult> HandleUpdate;
