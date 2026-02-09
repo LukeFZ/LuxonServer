@@ -3,7 +3,7 @@ using System.Text;
 
 namespace LuxonServer.Serialization;
 
-public ref struct Serializer()
+public ref struct ValueSerializer()
 {
     public byte[] Buffer  => _buffer;
 
@@ -103,86 +103,86 @@ public ref struct Serializer()
         switch (value)
         {
             case null:
-                WritePrimitive(VariantValueType.Null);
+                WritePrimitive(ValueTypeId.Null);
                 break;
             case bool boolean:
-                WritePrimitive(VariantValueType.Boolean);
+                WritePrimitive(ValueTypeId.Boolean);
                 WritePrimitive(boolean);
                 break;
             case byte byt:
-                WritePrimitive(VariantValueType.Byte);
+                WritePrimitive(ValueTypeId.Byte);
                 WritePrimitive(byt);
                 break;
             case short val:
-                WritePrimitive(VariantValueType.Short);
+                WritePrimitive(ValueTypeId.Short);
                 WritePrimitive(val);
                 break;
             case int val:
-                WritePrimitive(VariantValueType.Int);
+                WritePrimitive(ValueTypeId.Int);
                 WritePrimitive(val);
                 break;
             case long val:
-                WritePrimitive(VariantValueType.Long);
+                WritePrimitive(ValueTypeId.Long);
                 WritePrimitive(val);
                 break;
             case float val:
-                WritePrimitive(VariantValueType.Float);
+                WritePrimitive(ValueTypeId.Float);
                 WritePrimitive(val);
                 break;
             case double val:
-                WritePrimitive(VariantValueType.Double);
+                WritePrimitive(ValueTypeId.Double);
                 WritePrimitive(val);
                 break;
             case string val:
-                WritePrimitive(VariantValueType.String);
+                WritePrimitive(ValueTypeId.String);
                 WriteString(val);
                 break;
             case bool[] val:
-                WritePrimitive(VariantValueType.BooleanArray);
+                WritePrimitive(ValueTypeId.BooleanArray);
                 WritePrimitiveArray(val);
                 break;
             case byte[] val:
-                WritePrimitive(VariantValueType.ByteArray);
+                WritePrimitive(ValueTypeId.ByteArray);
                 WritePrimitiveArray(val);
                 break;
             case short[] val:
-                WritePrimitive(VariantValueType.ShortArray);
+                WritePrimitive(ValueTypeId.ShortArray);
                 WritePrimitiveArray(val);
                 break;
             case int[] val:
-                WritePrimitive(VariantValueType.IntArray);
+                WritePrimitive(ValueTypeId.IntArray);
                 WritePrimitiveArray(val);
                 break;
             case long[] val:
-                WritePrimitive(VariantValueType.LongArray);
+                WritePrimitive(ValueTypeId.LongArray);
                 WritePrimitiveArray(val);
                 break;
             case float[] val:
-                WritePrimitive(VariantValueType.FloatArray);
+                WritePrimitive(ValueTypeId.FloatArray);
                 WritePrimitiveArray(val);
                 break;
             case double[] val:
-                WritePrimitive(VariantValueType.DoubleArray);
+                WritePrimitive(ValueTypeId.DoubleArray);
                 WritePrimitiveArray(val);
                 break;
             case string[] val:
-                WritePrimitive(VariantValueType.StringArray);
+                WritePrimitive(ValueTypeId.StringArray);
                 WriteStringArray(val);
                 break;
             case Dictionary<byte, object?> val:
-                WritePrimitive(VariantValueType.Dictionary);
+                WritePrimitive(ValueTypeId.Dictionary);
                 WriteDictionary(val);
                 break;
             case Dictionary<object, object?> val:
-                WritePrimitive(VariantValueType.Hashtable);
+                WritePrimitive(ValueTypeId.Hashtable);
                 WriteHashtable(val);
                 break;
             case object?[] val:
-                WritePrimitive(VariantValueType.ObjectArray);
+                WritePrimitive(ValueTypeId.ObjectArray);
                 WriteObjectArray(val);
                 break;
             default:
-                WritePrimitive(VariantValueType.CustomValue);
+                WritePrimitive(ValueTypeId.CustomValue);
                 WriteCustomValue(value);
                 break;
         }

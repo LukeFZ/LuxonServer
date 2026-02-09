@@ -5,7 +5,7 @@ using System.Text;
 
 namespace LuxonServer.Serialization;
 
-internal ref struct Deserializer(ReadOnlySpan<byte> data)
+internal ref struct ValueDeserializer(ReadOnlySpan<byte> data)
 {
     private readonly ReadOnlySpan<byte> _data = data;
     private int _offset;
@@ -118,47 +118,47 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
     {
         switch (type)
         {
-            case VariantValueType.Null:
+            case ValueTypeId.Null:
                 return null;
-            case VariantValueType.Boolean:
+            case ValueTypeId.Boolean:
                 return ReadPrimitive<bool>();
-            case VariantValueType.Byte:
+            case ValueTypeId.Byte:
                 return ReadPrimitive<byte>();
-            case VariantValueType.Short:
+            case ValueTypeId.Short:
                 return ReadPrimitive<short>();
-            case VariantValueType.Int:
+            case ValueTypeId.Int:
                 return ReadPrimitive<int>();
-            case VariantValueType.Long:
+            case ValueTypeId.Long:
                 return ReadPrimitive<long>();
-            case VariantValueType.Float:
+            case ValueTypeId.Float:
                 return ReadPrimitive<float>();
-            case VariantValueType.Double:
+            case ValueTypeId.Double:
                 return ReadPrimitive<double>();
-            case VariantValueType.String:
+            case ValueTypeId.String:
                 return ReadString();
-            case VariantValueType.ObjectArray:
+            case ValueTypeId.ObjectArray:
                 return ReadObjectArray();
-            case VariantValueType.BooleanArray:
+            case ValueTypeId.BooleanArray:
                 return ReadPrimitiveArray<bool>();
-            case VariantValueType.ByteArray:
+            case ValueTypeId.ByteArray:
                 return ReadPrimitiveArray<byte>();
-            case VariantValueType.ShortArray:
+            case ValueTypeId.ShortArray:
                 return ReadPrimitiveArray<short>();
-            case VariantValueType.IntArray:
+            case ValueTypeId.IntArray:
                 return ReadPrimitiveArray<int>();
-            case VariantValueType.LongArray:
+            case ValueTypeId.LongArray:
                 return ReadPrimitiveArray<long>();
-            case VariantValueType.FloatArray:
+            case ValueTypeId.FloatArray:
                 return ReadPrimitiveArray<float>();
-            case VariantValueType.DoubleArray:
+            case ValueTypeId.DoubleArray:
                 return ReadPrimitiveArray<double>();
-            case VariantValueType.StringArray:
+            case ValueTypeId.StringArray:
                 return ReadStringArray();
-            case VariantValueType.Dictionary:
+            case ValueTypeId.Dictionary:
                 return ReadDictionary();
-            case VariantValueType.Hashtable:
+            case ValueTypeId.Hashtable:
                 return ReadHashtable();
-            case VariantValueType.CustomValue:
+            case ValueTypeId.CustomValue:
                 return ReadCustomValue();
             default:
                 throw new UnreachableException();
@@ -166,5 +166,5 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
     }
 
     public object? ReadObject()
-        => ReadValue(ReadPrimitive<VariantValueType>());
+        => ReadValue(ReadPrimitive<ValueTypeId>());
 }

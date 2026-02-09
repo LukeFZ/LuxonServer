@@ -70,7 +70,7 @@ public static unsafe class PluginManager
     private static PluginResult OnCreateGame(ObjectHandle handle, NativeOperationRequestMessage* message, NativeOnCreateGameCallInfo* info)
     {
         var data = new ReadOnlySpan<byte>(message->SerializedParameters, (int)message->SerializedParametersLength);
-        var parsed = VariantSerialization.DeserializeAs<Dictionary<byte, object?>>(data);
+        var parsed = ValueSerialization.DeserializeAs<Dictionary<byte, object?>>(data);
         var operationRequestMessage = new OperationRequestMessage(message->OperationCode, parsed);
 
         var onCreateGameCallInfo = new OnCreateGameCallInfo(info->IsJoin == 1, info->CreateIfNotExist == 1);

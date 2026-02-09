@@ -2,17 +2,17 @@
 
 namespace LuxonServer.Serialization;
 
-public static class VariantSerialization
+public static class ValueSerialization
 {
     public static byte[] Serialize(object? obj)
     {
-        var serializer = new Serializer();
+        var serializer = new ValueSerializer();
         serializer.WriteObject(obj);
         return serializer.Buffer;
     }
 
     public static object? Deserialize(ReadOnlySpan<byte> data)
-        => new Deserializer(data).ReadObject();
+        => new ValueDeserializer(data).ReadObject();
 
     public static T DeserializeAs<T>(ReadOnlySpan<byte> data)
     {
