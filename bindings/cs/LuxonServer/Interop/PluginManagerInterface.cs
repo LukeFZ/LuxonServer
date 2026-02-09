@@ -1,8 +1,9 @@
-﻿using System.Diagnostics;
+﻿using LuxonServer.Models;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace LuxonServer;
+namespace LuxonServer.Interop;
 
 // Struct size and layout needs to match with the C++ side
 [StructLayout(LayoutKind.Sequential)]

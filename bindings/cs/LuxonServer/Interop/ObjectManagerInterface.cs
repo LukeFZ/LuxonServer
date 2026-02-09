@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace LuxonServer;
+namespace LuxonServer.Interop;
 
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct ObjectManagerInterface

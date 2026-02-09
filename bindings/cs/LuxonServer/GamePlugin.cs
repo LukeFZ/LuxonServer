@@ -1,4 +1,6 @@
-﻿namespace LuxonServer;
+﻿using LuxonServer.Models;
+
+namespace LuxonServer;
 
 public abstract class GamePlugin : IDisposable
 {

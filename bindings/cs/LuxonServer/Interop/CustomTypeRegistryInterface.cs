@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace LuxonServer;
+namespace LuxonServer.Interop;
 
 [StructLayout(LayoutKind.Sequential)]
 internal unsafe struct CustomTypeRegistryInterface

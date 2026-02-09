@@ -1,4 +1,6 @@
-﻿namespace LuxonServer.Example;
+﻿using LuxonServer.Models;
+
+namespace LuxonServer.Example;
 
 public sealed class TestPlugin : GamePlugin
 {

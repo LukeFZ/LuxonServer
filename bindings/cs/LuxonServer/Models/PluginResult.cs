@@ -1,4 +1,4 @@
-﻿namespace LuxonServer;
+﻿namespace LuxonServer.Models;
 
 public enum PluginResult
 {
