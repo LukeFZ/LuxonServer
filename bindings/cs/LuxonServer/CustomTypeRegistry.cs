@@ -4,14 +4,13 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-using ObjectHandle = nint;
-
 public static unsafe class CustomTypeRegistry
 {
     private delegate byte[] Serializer(ObjectHandle handle);
     private delegate ObjectHandle Deserializer(ReadOnlySpan<byte> data);
 
-    private static readonly Dictionary<byte, (Serializer, Deserializer)> CustomTypes = new();
+    private static readonly Dictionary<byte, (Serializer, Deserializer)> CustomTypes = [];
+    private static readonly Dictionary<Type, byte> CustomTypeCodes = [];
     private static bool _registered;
 
     private static void RegisterCustomTypeRegistry()
@@ -40,6 +39,7 @@ public static unsafe class CustomTypeRegistry
             handle => serializer(handle.ToManagedObject<T>()),
             data => deserializer(data).ToNativeHandle()
         );
+        CustomTypeCodes[typeof(T)] = code;
 
         NativeMethods.luxon_csharp_register_custom_type(code);
     }
@@ -75,4 +75,15 @@ public static unsafe class CustomTypeRegistry
         var span = new ReadOnlySpan<byte>(data, (int)size);
         return CustomTypes[code].Item2(span);
     }
+
+    internal static byte[] SerializeCustomType(object obj) =>
+        !CustomTypeCodes.TryGetValue(obj.GetType(), out var customTypeCode)
+        || !CustomTypes.TryGetValue(customTypeCode, out var info)
+            ? throw new ArgumentException("Invalid custom type", nameof(obj))
+            : info.Item1(obj.ToNativeHandle());
+
+    internal static object DeserializeCustomType(byte code, ReadOnlySpan<byte> data) =>
+        !CustomTypes.TryGetValue(code, out var info) 
+            ? throw new ArgumentException("Invalid custom type code", nameof(code)) 
+            : info.Item2(data);
 }
