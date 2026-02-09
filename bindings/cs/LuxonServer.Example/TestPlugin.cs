@@ -15,9 +15,10 @@ public sealed class TestPlugin : GamePlugin
         return PluginResult.Continue;
     }
 
-    public override PluginResult OnCreateGame()
+    public override PluginResult OnCreateGame(OperationRequestMessage message, OnCreateGameCallInfo info)
     {
         Console.WriteLine("TestPlugin: OnCreateGame");
+        Console.WriteLine($"{message}, {info}");
         return PluginResult.Continue;
     }
 

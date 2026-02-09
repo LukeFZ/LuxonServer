@@ -6,6 +6,8 @@
 #include <luxon/server/game.hpp>
 #include <luxon/server/game_plugin_registry.hpp>
 
+#include "variant_serialization.hpp"
+
 #ifdef interface
 #undef interface
 #endif
@@ -45,7 +47,18 @@ void CSharpPlugin::OnAttach() {
 server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationRequestMessage &req,
     server::game_plugins::OnCreateGameCallInfo &onCreateGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.on_create_game(object_->handle()); });
+    ensure_non_coroutine_call(game_->app->server_manager, [&] {
+        const auto serialized_parameters = serialize_variant(req.parameters);
+
+        NativeOperationRequestMessage message;
+        message.operation_code = req.operation_code;
+        message.serialized_parameters = serialized_parameters.data();
+        message.serialized_parameters_length = serialized_parameters.size();
+
+        NativeOnCreateGameCallInfo info{.is_join = onCreateGameCallInfo.is_join, .create_if_not_exist = onCreateGameCallInfo.create_if_not_exist};
+
+        result = plugin_manager_interface.on_create_game(object_->handle(), &message, &info);
+    });
     return result;
 }
 

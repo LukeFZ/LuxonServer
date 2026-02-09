@@ -27,7 +27,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
 
     private string ReadString()
     {
-        var size = ReadPrimitive<nuint>();
+        var size = ReadPrimitive<ulong>();
         var data = ReadBytes((int)size);
         return Encoding.UTF8.GetString(data);
     }
@@ -35,7 +35,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
     private T[] ReadPrimitiveArray<T>()
         where T : unmanaged
     {
-        var count = ReadPrimitive<nuint>();
+        var count = ReadPrimitive<ulong>();
 
         var array = new T[count];
         for (nuint i = 0; i < count; i++)
@@ -48,7 +48,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
 
     private string[] ReadStringArray()
     {
-        var count = ReadPrimitive<nuint>();
+        var count = ReadPrimitive<ulong>();
 
         var array = new string[count];
         for (nuint i = 0; i < count; i++)
@@ -61,7 +61,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
 
     private object?[] ReadObjectArray()
     {
-        var count = ReadPrimitive<nuint>();
+        var count = ReadPrimitive<ulong>();
 
         var array = new object?[count];
         for (nuint i = 0; i < count; i++)
@@ -74,7 +74,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
 
     private Dictionary<byte, object?> ReadDictionary()
     {
-        var count = ReadPrimitive<nuint>();
+        var count = ReadPrimitive<ulong>();
 
         var dict = new Dictionary<byte, object?>();
         dict.EnsureCapacity((int)count);
@@ -91,7 +91,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
 
     private Dictionary<object, object?> ReadHashtable()
     {
-        var count = ReadPrimitive<nuint>();
+        var count = ReadPrimitive<ulong>();
 
         var dict = new Dictionary<object, object?>();
         dict.EnsureCapacity((int)count);
@@ -109,7 +109,7 @@ internal ref struct Deserializer(ReadOnlySpan<byte> data)
     private object ReadCustomValue()
     {
         var code = ReadPrimitive<byte>();
-        var size = ReadPrimitive<nuint>();
+        var size = ReadPrimitive<ulong>();
         var data = ReadBytes((int)size);
         return CustomTypeRegistry.DeserializeCustomType(code, data);
     }

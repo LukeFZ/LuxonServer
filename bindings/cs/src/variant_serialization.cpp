@@ -54,10 +54,10 @@ void serialize_value(luxon::ser::ByteWriter& writer, const luxon::ser::Value& va
                     writer.write_u8(key);
                     serialize_value(writer, val);
                 }
-            } else if constexpr (std::is_same_v<VariantValue, luxon::ser::Hashtable>) {
+            } else if constexpr (std::is_same_v<VariantValue, luxon::ser::HashtablePtr>) {
                 writer.write_u8(std::to_underlying(ValueType::Hashtable));
-                writer.write_u64_le(element.size());
-                for (const auto& [key, val] : element) {
+                writer.write_u64_le(element->size());
+                for (const auto& [key, val] : *element) {
                     serialize_value(writer, key);
                     serialize_value(writer, val);
                 }
@@ -68,32 +68,48 @@ void serialize_value(luxon::ser::ByteWriter& writer, const luxon::ser::Value& va
                 writer.write_bytes(element.data);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<bool>>) {
                 writer.write_u8(std::to_underlying(ValueType::BooleanArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_u8(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<uint8_t>>) {
                 writer.write_u8(std::to_underlying(ValueType::ByteArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_u8(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<int16_t>>) {
                 writer.write_u8(std::to_underlying(ValueType::ShortArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_i16_le(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<int32_t>>) {
                 writer.write_u8(std::to_underlying(ValueType::IntArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_i32_le(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<int64_t>>) {
                 writer.write_u8(std::to_underlying(ValueType::LongArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_i64_le(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<float>>) {
                 writer.write_u8(std::to_underlying(ValueType::FloatArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_f32_le(val);
             } else if constexpr (std::is_same_v<VariantValue, std::vector<double>>) {
                 writer.write_u8(std::to_underlying(ValueType::DoubleArray));
+                writer.write_u64_le(element.size());
                 for (const auto& val : element)
                     writer.write_f64_le(val);
+            } else if constexpr (std::is_same_v<VariantValue, std::vector<std::string>>) {
+                writer.write_u8(std::to_underlying(ValueType::StringArray));
+                writer.write_u64_le(element.size());
+                for (const auto& val : element) {
+                    writer.write_u64_le(val.size());
+                    writer.write_bytes(std::span(reinterpret_cast<const uint8_t *>(val.data()), val.size()));
+                }
+            } else {
+                static_assert(false);
             }
         },
         value.value);

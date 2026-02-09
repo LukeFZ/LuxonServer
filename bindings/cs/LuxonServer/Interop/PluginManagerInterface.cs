@@ -14,7 +14,7 @@ internal unsafe struct PluginManagerInterface
     internal delegate* unmanaged[Cdecl]<byte*, ObjectHandle> CreatePluginInstance;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, void> DestroyPluginInstance;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnAttach;
-    internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnCreateGame;
+    internal delegate* unmanaged[Cdecl]<ObjectHandle, NativeOperationRequestMessage*, NativeOnCreateGameCallInfo*, PluginResult> OnCreateGame;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> BeforeJoin;
     internal delegate* unmanaged[Cdecl]<ObjectHandle, PluginResult> OnJoinGame;
 

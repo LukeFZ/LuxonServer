@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using LuxonServer.Interop;
+using LuxonServer.Serialization;
 
 namespace LuxonServer;
 
@@ -66,9 +67,15 @@ public static unsafe class PluginManager
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static PluginResult OnCreateGame(ObjectHandle handle)
+    private static PluginResult OnCreateGame(ObjectHandle handle, NativeOperationRequestMessage* message, NativeOnCreateGameCallInfo* info)
     {
-        return handle.ToManagedObject<GamePlugin>().OnCreateGame();
+        var data = new ReadOnlySpan<byte>(message->SerializedParameters, (int)message->SerializedParametersLength);
+        var parsed = VariantSerialization.DeserializeAs<Dictionary<byte, object?>>(data);
+        var operationRequestMessage = new OperationRequestMessage(message->OperationCode, parsed);
+
+        var onCreateGameCallInfo = new OnCreateGameCallInfo(info->IsJoin == 1, info->CreateIfNotExist == 1);
+
+        return handle.ToManagedObject<GamePlugin>().OnCreateGame(operationRequestMessage, onCreateGameCallInfo);
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
