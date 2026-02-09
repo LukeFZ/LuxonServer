@@ -49,12 +49,12 @@ template <typename T> using HandlerPtr = std::unique_ptr<T>;
 enum class ServerType { None, NameServer, MasterServer, GameServer };
 
 struct ServerConfig {
-    ServerType type;
+    std::string type;
     uint16_t port;
 };
 
 struct ServerEndpoint {
-    ServerType type;
+    std::string type;
     std::string address;
     bool external;
 };
@@ -81,6 +81,7 @@ private:
     std::unordered_map<uint16_t, enet::EnetServer> servers_;
     std::list<HandlerPtr<HandlerBase>> connections_;
     std::priority_queue<ScheduledTask, std::vector<ScheduledTask>, std::greater<ScheduledTask>> scheduled_tasks_;
+    std::unordered_map<std::string, std::move_only_function<HandlerPtr<HandlerBase>(ServerManager&, std::shared_ptr<Peer>)>> registered_server_factories_;
 #ifdef LUXON_SERVER_ENABLE_PLUGINS
     std::queue<std::move_only_function<void()>> main_loop_calls_;
     std::mutex main_loop_calls_mutex_;
@@ -142,6 +143,14 @@ public:
     void configure_server(const std::string& name, const std::string& address, uint16_t port, bool external);
 
     ///
+    /// \brief Registers a custom server type.
+    /// \note This is used for completely custom server implementations, mainly for bindings.
+    /// \param name Name of server type
+    /// \param handler_constructor Callback to invoke whenever a user connects to the server.
+    ///
+    void register_server(const std::string& name, std::move_only_function<HandlerPtr<HandlerBase>(ServerManager&, std::shared_ptr<Peer>)>&& handler_constructor);
+
+    ///
     /// \brief Initializes the servers after they were configured.
     /// \note Call this after calling configure_server() for all servers, and before calling run()
     ///
@@ -187,7 +196,25 @@ public:
     /// \param server_type Type of server to request
     /// \return External address of server, e.g. "127.0.0.1:5058"
     ///
-    const std::string& get_endpoint_of(ServerType server_type);
+    const std::string& get_endpoint_of(const std::string& server_type);
+
+    ///
+    /// \brief Gets the external address of a random server of a given builtin type
+    /// \param server_type Type of server to request
+    /// \return External address of server, e.g. "127.0.0.1:5058"
+    ///
+    const std::string& get_endpoint_of(ServerType server_type) {
+        switch (server_type) {
+        case ServerType::NameServer:
+            return get_endpoint_of("NameServer");
+        case ServerType::MasterServer:
+            return get_endpoint_of("MasterServer");
+        case ServerType::GameServer:
+            return get_endpoint_of("GameServer");
+        default:
+            throw std::runtime_error("Invalid builtin server type");
+        }
+    }
 
     ///
     /// \brief Gets a list of active connections to this instance

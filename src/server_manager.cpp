@@ -70,18 +70,6 @@
 
 namespace server {
 namespace {
-ServerType StringToServerType(const std::string& str) {
-    if (str == "NameServer")
-        return ServerType::NameServer;
-    if (str == "MasterServer")
-        return ServerType::MasterServer;
-    if (str == "GameServer")
-        return ServerType::GameServer;
-
-    // Throw error
-    throw std::runtime_error("Unknown ServerType: " + str);
-}
-
 std::string LoadFile(const std::string& filename) {
     std::ifstream f(filename, std::ios::binary);
     if (!f)
@@ -90,32 +78,6 @@ std::string LoadFile(const std::string& filename) {
     buffer << f.rdbuf();
     return buffer.str();
 }
-
-std::string_view ServerTypeToString(ServerType type) {
-    switch (type) {
-    case ServerType::NameServer:
-        return "NameServer";
-    case ServerType::MasterServer:
-        return "MasterServer";
-    case ServerType::GameServer:
-        return "GameServer";
-    default:
-        return "Unknown???";
-    }
-}
-
-HandlerPtr<HandlerBase> ServerTypeToHandler(ServerType type, ServerManager& server_man, std::shared_ptr<Peer>&& peer) {
-    switch (type) {
-    case ServerType::NameServer:
-        return HandlerPtr<NameServerHandler>(new NameServerHandler(server_man, peer));
-    case ServerType::MasterServer:
-        return HandlerPtr<MasterServerHandler>(new MasterServerHandler(server_man, peer));
-    case ServerType::GameServer:
-        return HandlerPtr<GameServerHandler>(new GameServerHandler(server_man, peer));
-    default:
-        return nullptr;
-    }
-}
 } // namespace
 
 ServerManager::ServerManager() : running_(false) {
@@ -123,6 +85,18 @@ ServerManager::ServerManager() : running_(false) {
 #ifndef NDEBUG
     log_->set_level(log_level::trace);
 #endif
+
+    register_server("NameServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) { 
+        return std::static_pointer_cast<HandlerBase>(std::make_shared<NameServerHandler>(manager, peer));
+    });
+
+    register_server("MasterServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) {
+        return std::static_pointer_cast<HandlerBase>(std::make_shared<MasterServerHandler>(manager, peer));
+    });
+
+    register_server("GameServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) {
+        return std::static_pointer_cast<HandlerBase>(std::make_shared<GameServerHandler>(manager, peer));
+    });
 }
 
 ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
@@ -151,10 +125,7 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
         Yaml::Node& section = (*it).second;
 
         // Handle known server types (NameServer, MasterServer, GameServer)
-        bool isKnownType = (key == "NameServer" || key == "MasterServer" || key == "GameServer");
-
-        if (isKnownType) {
-            ServerType currentType = StringToServerType(key);
+        if (registered_server_factories_.contains(key)) {
 
             if (section.IsSequence()) {
                 for (auto itemIt = section.Begin(); itemIt != section.End(); itemIt++) {
@@ -162,18 +133,18 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
 
                     if (!item["port"].IsNone()) {
                         uint16_t port = item["port"].As<uint16_t>();
-                        configs_.push_back({currentType, port});
+                        configs_.push_back({key, port});
                     }
                     if (!item["address"].IsNone()) {
                         std::string addr = item["address"].As<std::string>();
-                        endpoints.push_back({currentType, addr, false});
+                        endpoints.push_back({key, addr, false});
                     }
                 }
             }
         }
         // Handle "External" Section
         else if (key == "External") {
-            ServerType extType = ServerType::None;
+            std::string extType;
             std::string extAddr;
             bool addrFound = false;
 
@@ -182,8 +153,7 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
                     Yaml::Node& item = (*itemIt).second;
 
                     if (!item["type"].IsNone()) {
-                        std::string typeStr = item["type"].As<std::string>();
-                        extType = StringToServerType(typeStr);
+                        extType = item["type"].As<std::string>();
                     }
                     if (!item["address"].IsNone()) {
                         extAddr = item["address"].As<std::string>();
@@ -192,7 +162,7 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
                 }
             }
 
-            if (extType != ServerType::None && addrFound)
+            if (registered_server_factories_.contains(extType) && addrFound)
                 endpoints.push_back({extType, extAddr, true});
         }
 #ifdef LUXON_SERVER_ENABLE_WEBSERVER
@@ -305,7 +275,7 @@ bool ServerManager::delay(unsigned int milliseconds) {
 }
 #endif
 
-const std::string& ServerManager::get_endpoint_of(ServerType server_type) {
+const std::string& ServerManager::get_endpoint_of(const std::string& server_type) {
     std::vector<const std::string *> candidates;
     candidates.reserve(endpoints.size());
 
@@ -316,7 +286,7 @@ const std::string& ServerManager::get_endpoint_of(ServerType server_type) {
 
     // Handle cases where no config exists
     if (candidates.empty())
-        throw std::runtime_error(std::format("No endpoint configuration found for {}", ServerTypeToString(server_type)));
+        throw std::runtime_error(std::format("No endpoint configuration found for {}", server_type));
 
     // Return a random address from the candidates
     static std::mt19937 generator{1234};
@@ -470,7 +440,7 @@ void ServerManager::setup() {
     // Create servers
     for (const auto& config : configs_) {
         // Create enet server and configure it
-        log_->info("Setting up {} on port {}", ServerTypeToString(config.type), config.port);
+        log_->info("Setting up {} on port {}", config.type, config.port);
 
         auto& server = servers_.try_emplace(config.port, cfg).first->second;
 
@@ -483,10 +453,10 @@ void ServerManager::setup() {
 #ifndef NDEBUG
             peer->log->set_level(log_level::trace);
 #endif
-            peer->log->info("Peer {} constructed with {} handler", peer->enet_peer->peer_id(), ServerTypeToString(server_type));
+            peer->log->info("Peer {} constructed with {} handler", peer->enet_peer->peer_id(), server_type);
 
             // Construct handler
-            auto handler = ServerTypeToHandler(server_type, *this, std::move(peer));
+            auto handler = registered_server_factories_[server_type](*this, std::move(peer));
 
             // Handler pointer must be owning with plugins enabled to ensure no destruction while coroutine is active
 #ifdef LUXON_SERVER_ENABLE_PLUGINS
@@ -554,27 +524,29 @@ void ServerManager::setup() {
         };
 
         // Make server ready for listening
-        log_->info("Starting {} on port {}", ServerTypeToString(config.type), config.port);
+        log_->info("Starting {} on port {}", config.type, config.port);
 
         if (!server.bind(config.port)) {
-            log_->error("Failed to bind {} to port {}!", ServerTypeToString(config.type), config.port);
+            log_->error("Failed to bind {} to port {}!", config.type, config.port);
             continue;
         }
 
         // Add server to sock selector
 #ifndef LUXON_SERVER_POLL
         if (!sock_selector_.add_read_fd(server.native_handle()))
-            log_->error("Failed to add new server to sock selector!", ServerTypeToString(config.type), config.port);
+            log_->error("Failed to add new server to sock selector!", config.type, config.port);
 #endif
     }
 }
 
 void ServerManager::configure_server(const std::string &name, const std::string &address, const uint16_t port, bool external) {
-    const auto type = StringToServerType(name);
-
-    configs_.emplace_back(type, port);
-    endpoints.emplace_back(type, address, external);
+    configs_.emplace_back(name, port);
+    endpoints.emplace_back(name, address, external);
 
     log_->info("Configured {} to listen on {}:{}", name, address, port);
+}
+
+void ServerManager::register_server(const std::string &name, std::move_only_function<HandlerPtr<HandlerBase>(ServerManager &, std::shared_ptr<Peer>)>&& handler_constructor) {
+    registered_server_factories_[name] = std::move(handler_constructor);
 }
 } // namespace server
