@@ -88,7 +88,7 @@ void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &
     });
 
     if (result == FunctionResult::CallBase) {
-        return HandlerBase::HandleSlowUpdate();
+        return HandlerBase::HandleOperationRequest(req, is_encrypted, cmd_header);
     }
 }
 
