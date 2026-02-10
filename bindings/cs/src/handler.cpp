@@ -13,12 +13,13 @@ ServerHandlerInterface server_handler_interface;
 
 CSHARP_API void luxon_csharp_set_server_handler(const ServerHandlerInterface *interface) { server_handler_interface = *interface; }
 
-CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_ptr<server::Peer> &peer, std::shared_ptr<ManagedObject> object)
-    : HandlerBase(manager, peer), object_(std::move(object)) {
+CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_ptr<server::Peer>& peer, std::shared_ptr<ManagedObject> object, const PeerHandle& handle)
+    : HandlerBase(manager, peer), object_(std::move(object)), peer_handle_(handle) {
 }
 
 CSharpHandler::~CSharpHandler() {
     ensure_non_coroutine_call(server_manager_, [this] { server_handler_interface.destroy_handler_instance(object_->handle()); });
+    unregister_peer(peer_handle_);
 }
 
 void CSharpHandler::HandleConnect() {

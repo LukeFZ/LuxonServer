@@ -36,6 +36,7 @@ public class TestServer : HandlerBase
     protected override FunctionResult HandleOperationRequest(OperationRequestMessage message, bool isEncrypted, in EnetCommandHeader header)
     {
         Console.WriteLine($"TestServer: HandleOperationRequest: {message}, {isEncrypted}, {header}");
+        Console.WriteLine(Peer);
         return base.HandleOperationRequest(message, isEncrypted, in header);
     }
 

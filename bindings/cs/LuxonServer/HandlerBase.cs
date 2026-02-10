@@ -10,6 +10,8 @@ public abstract class HandlerBase : IDisposable
 {
     private static bool _registered;
 
+    protected Peer Peer { get; private set; } = null!;
+
     protected virtual FunctionResult HandleConnect() => FunctionResult.CallBase;
     protected virtual FunctionResult HandleDisconnect() => FunctionResult.CallBase;
     protected virtual FunctionResult HandleUpdate() => FunctionResult.CallBase;
@@ -27,6 +29,11 @@ public abstract class HandlerBase : IDisposable
     {
         Dispose(true);
         GC.SuppressFinalize(this);
+    }
+
+    internal void SetPeer(Peer peer)
+    {
+        Peer = peer;
     }
 
     internal static unsafe void Register()

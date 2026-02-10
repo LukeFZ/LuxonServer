@@ -59,10 +59,13 @@ public sealed class ServerContext : IDisposable
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static unsafe ObjectHandle CreateHandler(byte* namePtr)
+    private static unsafe ObjectHandle CreateHandler(byte* namePtr, PeerHandle handle)
     {
         var name = Marshal.PtrToStringUTF8((nint)namePtr)!;
+        
         var server = _factories[name]();
+        server.SetPeer(new Peer(handle));
+
         return server.ToNativeHandle();
     } 
 

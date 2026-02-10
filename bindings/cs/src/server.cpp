@@ -6,7 +6,7 @@
 #include "threading.hpp"
 
 using ServerContextHandle = intptr_t;
-using CreateHandlerCallback = ObjectHandle(*)(const char* name);
+using CreateHandlerCallback = ObjectHandle(*)(const char* name, PeerHandle peer);
 
 namespace {
 std::unordered_map<ServerContextHandle, std::unique_ptr<server::ServerManager>> server_contexts;
@@ -35,15 +35,19 @@ CSHARP_API void luxon_csharp_server_context_destroy(const ServerContextHandle ha
 
 CSHARP_API void luxon_csharp_set_create_handler_callback(const CreateHandlerCallback callback) { create_handler_callback = callback; }
 
+// TODO: Maybe move this into handler.cpp and the handler interface
 CSHARP_API void luxon_csharp_server_context_register_server(const ServerContextHandle handle, const char* name) {
     const auto str = std::string(name);
 
     server_contexts[handle]->register_server(str, [str](server::ServerManager& manager, const std::shared_ptr<server::Peer>& peer) {
         ObjectHandle managedObjectHandle;
+        const auto peer_handle = register_peer(peer);
 
-        ensure_non_coroutine_call(manager, [&managedObjectHandle, &str] { managedObjectHandle = create_handler_callback(str.c_str()); });
+        ensure_non_coroutine_call(manager, [&managedObjectHandle, &str, &peer_handle] { 
+            managedObjectHandle = create_handler_callback(str.c_str(), peer_handle);
+        });
 
         return std::static_pointer_cast<server::HandlerBase>(
-            std::make_shared<CSharpHandler>(manager, peer, std::make_shared<ManagedObject>(managedObjectHandle)));
+            std::make_shared<CSharpHandler>(manager, peer, std::make_shared<ManagedObject>(managedObjectHandle), peer_handle));
     });
 }

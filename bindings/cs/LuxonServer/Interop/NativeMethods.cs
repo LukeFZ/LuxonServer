@@ -29,7 +29,7 @@ internal static unsafe partial class NativeMethods
     internal static partial void luxon_csharp_server_context_destroy(ServerContextHandle handle);
 
     [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_create_handler_callback(delegate* unmanaged[Cdecl]<byte*, ObjectHandle> callback);
+    internal static partial void luxon_csharp_set_create_handler_callback(delegate* unmanaged[Cdecl]<byte*, PeerHandle, ObjectHandle> callback);
 
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_server_context_register_server(ServerContextHandle handle, string name);
