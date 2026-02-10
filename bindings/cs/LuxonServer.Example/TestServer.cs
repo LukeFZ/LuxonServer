@@ -37,6 +37,21 @@ public class TestServer : HandlerBase
     {
         Console.WriteLine($"TestServer: HandleOperationRequest: {message}, {isEncrypted}, {header}");
         Console.WriteLine(Peer);
+
+        if (message.OperationCode == 220)
+        {
+            Console.WriteLine("Answering GetRegions");
+
+            var resp = new OperationResponseMessage(220, 0, new Dictionary<byte, object?>
+            {
+                [210] = (string[])["eu"],
+                [230] = (string[])["127.0.0.1:5055"]
+            });
+
+            Peer.Send(resp, header.ToSendOptions(), isEncrypted);
+            return FunctionResult.Continue;
+        }
+
         return base.HandleOperationRequest(message, isEncrypted, in header);
     }
 

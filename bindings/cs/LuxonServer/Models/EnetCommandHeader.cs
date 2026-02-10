@@ -12,4 +12,6 @@ public readonly record struct EnetCommandHeader
     public readonly byte Reserved;
     public readonly uint CommandLength;
     public readonly uint ReliableSequenceId;
+
+    public EnetSendOptions ToSendOptions() => new(ChannelId);
 }
