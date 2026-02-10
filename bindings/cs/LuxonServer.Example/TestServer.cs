@@ -49,7 +49,7 @@ public class TestServer : HandlerBase
             });
 
             Peer.Send(resp, header.ToSendOptions(), isEncrypted);
-            return FunctionResult.Continue;
+            return FunctionResult.Return;
         }
 
         return base.HandleOperationRequest(message, isEncrypted, in header);

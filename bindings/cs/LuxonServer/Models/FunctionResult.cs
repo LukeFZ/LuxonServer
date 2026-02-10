@@ -2,6 +2,6 @@
 
 public enum FunctionResult : byte
 {
-    Continue = 0,
+    Return = 0,
     CallBase = 1
 }
