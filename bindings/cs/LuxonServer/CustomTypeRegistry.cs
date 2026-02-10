@@ -27,7 +27,7 @@ public static class CustomTypeRegistry
         !CustomTypeCodes.TryGetValue(obj.GetType(), out var customTypeCode)
         || !CustomTypes.TryGetValue(customTypeCode, out var info)
             ? throw new ArgumentException("Invalid custom type", nameof(obj))
-            : info.Item1(obj.ToNativeHandle());
+            : info.Item1(obj);
 
     internal static object DeserializeCustomType(byte code, ReadOnlySpan<byte> data) =>
         !CustomTypes.TryGetValue(code, out var info) 

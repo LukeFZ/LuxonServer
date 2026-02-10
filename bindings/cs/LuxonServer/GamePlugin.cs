@@ -9,13 +9,9 @@ public abstract class GamePlugin : IDisposable
     public abstract PluginResult BeforeJoinGame();
     public abstract PluginResult OnJoinGame();
 
-    ~GamePlugin()
-    {
-        Dispose(false);
-    }
-
     public void Dispose()
     {
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
