@@ -7,7 +7,14 @@ internal static unsafe partial class NativeMethods
 {
     private const string LibraryName = "luxon_server";
 
-    // Server
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_set_interop_interface(InteropInterface* interopInterface);
+
+    [LibraryImport(LibraryName)]
+    internal static partial void* luxon_csharp_malloc(nuint size);
+
+    [LibraryImport(LibraryName)]
+    internal static partial void luxon_csharp_free(void* ptr);
 
     [LibraryImport(LibraryName)]
     internal static partial ServerContextHandle luxon_csharp_server_context_create();
@@ -28,29 +35,11 @@ internal static unsafe partial class NativeMethods
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_server_context_destroy(ServerContextHandle handle);
 
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_create_handler_callback(delegate* unmanaged[Cdecl]<byte*, PeerHandle, ObjectHandle> callback);
-
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_server_context_register_server(ServerContextHandle handle, string name);
 
-    // Plugin Manager
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_plugin_manager(PluginManagerInterface* pluginInterface);
-
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_register_plugin(string name);
-
-    // Object Manager
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_object_manager(ObjectManagerInterface* objectManagerInterface);
-
-    [LibraryImport(LibraryName)]
-    internal static partial void luxon_csharp_set_server_handler(ServerHandlerInterface* serverHandlerInterface);
-
-    // Peer
 
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_peer_send_message(PeerHandle handle, SendMessageArguments* arguments);

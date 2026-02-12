@@ -6,56 +6,51 @@ using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
-public partial class HandlerBase
+public static unsafe class HandlerManager
 {
-    private static bool _registered;
+    private static readonly Dictionary<string, Func<HandlerBase>> Factories = [];
 
-    internal void SetPeer(Peer peer)
+    internal static void RegisterServer(string name, Func<HandlerBase> factory)
     {
-        Peer = peer;
-    }
+        NativeInterface.EnsureRegistered();
 
-    internal static unsafe void Register()
-    {
-        if (_registered)
-            return;
-
-        var serverHandlerInterface = new ServerHandlerInterface
-        {
-            DestroyHandlerInstance = &DestroyHandlerInstance,
-            HandleConnect = &HandleConnect,
-            HandleDisconnect = &HandleDisconnect,
-            HandleUpdate = &HandleUpdate,
-            HandleSlowUpdate = &HandleSlowUpdate,
-            HandleOperationRequest = &HandleOperationRequest
-        };
-        NativeMethods.luxon_csharp_set_server_handler(&serverHandlerInterface);
-
-        _registered = true;
+        Factories[name] = factory;
+        // TODO: This should also register the handler with the API, but this currently requires a server context
     }
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static void DestroyHandlerInstance(ObjectHandle handle)
+    internal static ObjectHandle CreateHandlerInstance(byte* namePtr, PeerHandle peer)
+    {
+        var name = Marshal.PtrToStringUTF8((nint)namePtr)!;
+
+        var server = Factories[name]();
+        server.SetPeer(new Peer(peer));
+
+        return server.ToNativeHandle();
+    }
+
+    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
+    internal static void DestroyHandlerInstance(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().Dispose();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static FunctionResult HandleConnect(ObjectHandle handle)
+    internal static FunctionResult HandleConnect(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleConnect();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static FunctionResult HandleDisconnect(ObjectHandle handle)
+    internal static FunctionResult HandleDisconnect(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleDisconnect();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static FunctionResult HandleUpdate(ObjectHandle handle)
+    internal static FunctionResult HandleUpdate(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleUpdate();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static FunctionResult HandleSlowUpdate(ObjectHandle handle)
+    internal static FunctionResult HandleSlowUpdate(ObjectHandle handle)
         => handle.ToManagedObject<HandlerBase>().HandleSlowUpdate();
 
     [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static unsafe FunctionResult HandleOperationRequest(ObjectHandle handle,
+    internal static FunctionResult HandleOperationRequest(ObjectHandle handle,
         NativeOperationRequestMessage* message, byte isEncrypted, EnetCommandHeader* header)
     {
         var data = new ReadOnlySpan<byte>(message->SerializedParameters, (int)message->SerializedParametersLength);

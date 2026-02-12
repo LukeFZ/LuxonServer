@@ -1,15 +1,10 @@
 ﻿using System.Net;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace LuxonServer;
 
 public sealed class ServerContext : IDisposable
 {
     internal ServerContextHandle Handle { get; }
-
-    private static bool _callbackSet;
-    private static readonly Dictionary<string, Func<HandlerBase>> _factories = [];
 
     private ServerContext(ServerContextHandle handle)
     {
@@ -43,31 +38,9 @@ public sealed class ServerContext : IDisposable
 
     public void RegisterServer(string name, Func<HandlerBase> factory)
     {
-        if (!_callbackSet)
-        {
-            unsafe
-            {
-                HandlerBase.Register();
-                NativeMethods.luxon_csharp_set_create_handler_callback(&CreateHandler);
-            }
-
-            _callbackSet = true;
-        }
-
-        _factories[name] = factory;
+        HandlerManager.RegisterServer(name, factory);
         NativeMethods.luxon_csharp_server_context_register_server(Handle, name);
     }
-
-    [UnmanagedCallersOnly(CallConvs = [typeof(CallConvCdecl)])]
-    private static unsafe ObjectHandle CreateHandler(byte* namePtr, PeerHandle handle)
-    {
-        var name = Marshal.PtrToStringUTF8((nint)namePtr)!;
-        
-        var server = _factories[name]();
-        server.SetPeer(new Peer(handle));
-
-        return server.ToNativeHandle();
-    } 
 
     public void Dispose()
     {
