@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="LuxonServer.Example/LuxonServer.Example.csproj" Id="3872adbc-4fb5-4ee4-9f2d-7867697e4336" />
+  <Project Path="LuxonServer.Plugin/LuxonServer.Plugin.csproj" Id="15b1c6b3-338c-4da8-9293-82f3cd78f12d" />
   <Project Path="LuxonServer/LuxonServer.csproj" />
 </Solution>
