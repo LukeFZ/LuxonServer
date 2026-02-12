@@ -9,7 +9,7 @@ server::SideThreadPtr side_thread = server::SideThread::create();
 }
 
 void ensure_non_coroutine_call(server::ServerManager& manager, std::move_only_function<void()>&& fn) {
-if (minicoro::Coroutine::current() == nullptr) {
+    if (minicoro::Coroutine::current() == nullptr) {
         // We're in a side thread or the main thread, just call the function directly
         return fn();
     }
