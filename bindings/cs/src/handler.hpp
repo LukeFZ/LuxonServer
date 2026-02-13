@@ -2,33 +2,8 @@
 
 #include <luxon/server/handler_base.hpp>
 
+#include "interop.hpp"
 #include "object_management.hpp"
-#include "peer.hpp"
-#include "plugin.hpp"
-
-enum class FunctionResult : uint8_t {
-    Return = 0,
-    CallBase = 1
-};
-
-// Struct size and layout needs to match with the C# side
-struct ServerHandlerInterface {
-    static constexpr auto kFunctionPointerCount = 11;
-
-    void (*destroy_handler_instance)(ObjectHandle handle);
-    FunctionResult (*handle_connect)(ObjectHandle handle);
-    FunctionResult (*handle_disconnect)(ObjectHandle handle);
-    FunctionResult (*handle_update)(ObjectHandle handle);
-    FunctionResult (*handle_slow_update)(ObjectHandle handle);
-    void *reserved0; // ENetConnectionStateChange
-    void *reserved1; // ENetCommand
-    void *reserved2; // HTTPRequest
-    void *reserved3; // InitRequest
-    FunctionResult (*handle_operation_request)(ObjectHandle handle, NativeOperationRequestMessage *message, bool is_encrypted,
-                                               const luxon::enet::EnetCommandHeader *header); // OperationRequest
-    void *reserved5; // InternalOperationRequest
-};
-static_assert(sizeof(ServerHandlerInterface) == sizeof(uintptr_t) * ServerHandlerInterface::kFunctionPointerCount);
 
 class CSharpHandler : public server::HandlerBase {
     std::shared_ptr<ManagedObject> object_;

@@ -8,16 +8,9 @@
 
 #include "variant_serialization.hpp"
 
-#ifdef interface
-#undef interface
-#endif
-
 namespace {
-PluginManagerInterface plugin_manager_interface;
 server::logger logger("CSharpPlugin");
 }
-
-CSHARP_API void luxon_csharp_set_plugin_manager(const PluginManagerInterface *interface) { plugin_manager_interface = *interface; }
 
 CSHARP_API void luxon_csharp_register_plugin(const char* name) {
     const auto name_str = std::string(name);
@@ -27,7 +20,7 @@ CSHARP_API void luxon_csharp_register_plugin(const char* name) {
         ObjectHandle handle = 0;
 
         ensure_non_coroutine_call(game->app->server_manager,
-                                  [&handle, &name_str] { handle = plugin_manager_interface.create_plugin_instance(name_str.c_str()); });
+                                  [&handle, &name_str] { handle = interop::create_plugin_instance(name_str); });
 
         return std::make_unique<CSharpPlugin>(game, name_str, std::make_shared<ManagedObject>(handle));
     });
@@ -37,11 +30,11 @@ CSharpPlugin::CSharpPlugin(server::Game *game, const std::string_view plugin_nam
     : PluginBase(game, plugin_name), object_(std::move(object)) { }
 
 CSharpPlugin::~CSharpPlugin() {
-    ensure_non_coroutine_call(game_->app->server_manager, [this] { plugin_manager_interface.destroy_plugin_instance(object_->handle()); });
+    ensure_non_coroutine_call(game_->app->server_manager, [this] { interop::destroy_plugin_instance(object_->handle()); });
 }
 
 void CSharpPlugin::OnAttach() { 
-    ensure_non_coroutine_call(game_->app->server_manager, [this] { plugin_manager_interface.on_attach(object_->handle()); });
+    ensure_non_coroutine_call(game_->app->server_manager, [this] { interop::on_attach(object_->handle()); });
 }
 
 server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationRequestMessage &req,
@@ -57,7 +50,7 @@ server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationReq
 
         NativeOnCreateGameCallInfo info{.is_join = onCreateGameCallInfo.is_join, .create_if_not_exist = onCreateGameCallInfo.create_if_not_exist};
 
-        result = plugin_manager_interface.on_create_game(object_->handle(), &message, &info);
+        result = interop::on_create_game(object_->handle(), &message, &info);
     });
     return result;
 }
@@ -65,13 +58,13 @@ server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationReq
 server::game_plugins::Result CSharpPlugin::BeforeJoin(luxon::ser::OperationRequestMessage &req,
     server::game_plugins::BeforeJoinGameCallInfo &beforeJoinGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.before_join(object_->handle()); });
+    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = interop::before_join(object_->handle()); });
     return result;
 }
 
 server::game_plugins::Result CSharpPlugin::OnJoinGame(luxon::ser::OperationRequestMessage &req, server::game_plugins::OnJoinGameCallInfo &onJoinGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = plugin_manager_interface.on_join_game(object_->handle()); });
+    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = interop::on_join_game(object_->handle()); });
     return result;
 }
 

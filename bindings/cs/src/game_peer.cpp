@@ -25,6 +25,7 @@ CSHARP_API int32_t luxon_csharp_game_peer_get_actor_id(const server::GamePeer* g
     return game_peer->actor_id;
 }
 
+/* wip
 CSHARP_API size_t luxon_csharp_game_peer_get_actor_props(const server::GamePeer* game_peer, uint8_t* out_serialized) {
     if (!game_peer)
         return 0;
@@ -35,3 +36,4 @@ CSHARP_API size_t luxon_csharp_game_peer_get_actor_props(const server::GamePeer*
 
     return serialized.size();
 }
+*/

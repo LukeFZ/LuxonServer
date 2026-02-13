@@ -4,31 +4,6 @@
 
 #include "object_management.hpp"
 
-// Struct size and layout needs to match with the C# side
-
-struct NativeOperationRequestMessage {
-    uint8_t operation_code;
-    const uint8_t *serialized_parameters;
-    size_t serialized_parameters_length;
-};
-
-struct NativeOnCreateGameCallInfo {
-    bool is_join;
-    bool create_if_not_exist;
-};
-
-struct PluginManagerInterface {
-    static constexpr auto kFunctionPointerCount = 6;
-
-    ObjectHandle (*create_plugin_instance)(const char *plugin_name);
-    void (*destroy_plugin_instance)(ObjectHandle handle);
-    server::game_plugins::Result (*on_attach)(ObjectHandle handle);
-    server::game_plugins::Result (*on_create_game)(ObjectHandle handle, NativeOperationRequestMessage* message, NativeOnCreateGameCallInfo* info);
-    server::game_plugins::Result (*before_join)(ObjectHandle handle);
-    server::game_plugins::Result (*on_join_game)(ObjectHandle handle);
-};
-static_assert(sizeof(PluginManagerInterface) == sizeof(uintptr_t) * PluginManagerInterface::kFunctionPointerCount);
-
 class CSharpPlugin : public server::game_plugins::PluginBase {
 public:
     CSharpPlugin(server::Game *game, std::string_view plugin_name, std::shared_ptr<ManagedObject> object);

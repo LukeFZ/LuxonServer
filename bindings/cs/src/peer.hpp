@@ -1,8 +1,10 @@
 #pragma once
+
 #include <cstdint>
 #include <memory>
+#include <luxon/enet_peer.hpp>
 
-#include "luxon/enet_peer.hpp"
+#include "interop.hpp"
 
 namespace server {
 struct Peer;
@@ -47,8 +49,6 @@ struct SendMessageArguments {
         OperationResponseMessageData* operation_response;
     };
 };
-
-using PeerHandle = intptr_t;
 
 PeerHandle register_peer(const std::shared_ptr<server::Peer>& peer);
 void unregister_peer(const PeerHandle& handle);

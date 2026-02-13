@@ -1,59 +1,49 @@
 #include "handler.hpp"
-#include "export.hpp"
+#include "peer.hpp"
 #include "threading.hpp"
 #include "variant_serialization.hpp"
-
-#ifdef interface
-#undef interface
-#endif
-
-namespace {
-ServerHandlerInterface server_handler_interface;
-}
-
-CSHARP_API void luxon_csharp_set_server_handler(const ServerHandlerInterface *interface) { server_handler_interface = *interface; }
 
 CSharpHandler::CSharpHandler(server::ServerManager& manager, const std::shared_ptr<server::Peer>& peer, std::shared_ptr<ManagedObject> object, const PeerHandle& handle)
     : HandlerBase(manager, peer), object_(std::move(object)), peer_handle_(handle) {
 }
 
 CSharpHandler::~CSharpHandler() {
-    ensure_non_coroutine_call(server_manager_, [this] { server_handler_interface.destroy_handler_instance(object_->handle()); });
+    ensure_non_coroutine_call(server_manager_, [this] { interop::destroy_handler_instance(object_->handle()); });
     unregister_peer(peer_handle_);
 }
 
 void CSharpHandler::HandleConnect() {
-    auto result = FunctionResult::Return;
-    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_connect(object_->handle()); });
+    auto result = HandlerResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = interop::handle_connect(object_->handle()); });
 
-    if (result == FunctionResult::CallBase) {
+    if (result == HandlerResult::CallBase) {
         return HandlerBase::HandleConnect();
     }
 }
 
 void CSharpHandler::HandleDisconnect() {
-    auto result = FunctionResult::Return;
-    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_disconnect(object_->handle()); });
+    auto result = HandlerResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = interop::handle_disconnect(object_->handle()); });
 
-    if (result == FunctionResult::CallBase) {
+    if (result == HandlerResult::CallBase) {
         return HandlerBase::HandleDisconnect();
     }
 }
 
 void CSharpHandler::HandleUpdate() {
-    auto result = FunctionResult::Return;
-    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_update(object_->handle()); });
+    auto result = HandlerResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = interop::handle_update(object_->handle()); });
 
-    if (result == FunctionResult::CallBase) {
+    if (result == HandlerResult::CallBase) {
         return HandlerBase::HandleUpdate();
     }
 }
 
 void CSharpHandler::HandleSlowUpdate() {
-    auto result = FunctionResult::Return;
-    ensure_non_coroutine_call(server_manager_, [this, &result] { result = server_handler_interface.handle_slow_update(object_->handle()); });
+    auto result = HandlerResult::Return;
+    ensure_non_coroutine_call(server_manager_, [this, &result] { result = interop::handle_slow_update(object_->handle()); });
 
-    if (result == FunctionResult::CallBase) {
+    if (result == HandlerResult::CallBase) {
         return HandlerBase::HandleSlowUpdate();
     }
 }
@@ -75,7 +65,7 @@ void CSharpHandler::HandleInitRequest(luxon::ser::InitMessage &req, const luxon:
 }
 
 void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &req, bool is_encrypted, const luxon::enet::EnetCommandHeader &cmd_header) {
-    auto result = FunctionResult::Return;
+    auto result = HandlerResult::Return;
     ensure_non_coroutine_call(server_manager_, [&] {
         const auto serialized_parameters = serialize_variant(req.parameters);
 
@@ -84,10 +74,10 @@ void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &
         message.serialized_parameters = serialized_parameters.data();
         message.serialized_parameters_length = serialized_parameters.size();
         
-        result = server_handler_interface.handle_operation_request(object_->handle(), &message, is_encrypted, &cmd_header);
+        result = interop::handle_operation_request(object_->handle(), &message, is_encrypted, &cmd_header);
     });
 
-    if (result == FunctionResult::CallBase) {
+    if (result == HandlerResult::CallBase) {
         return HandlerBase::HandleOperationRequest(req, is_encrypted, cmd_header);
     }
 }

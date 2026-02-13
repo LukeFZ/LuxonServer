@@ -3,15 +3,14 @@
 
 #include "export.hpp"
 #include "handler.hpp"
+#include "peer.hpp"
 #include "threading.hpp"
 
 using ServerContextHandle = intptr_t;
-using CreateHandlerCallback = ObjectHandle(*)(const char* name, PeerHandle peer);
 
 namespace {
 std::unordered_map<ServerContextHandle, std::unique_ptr<server::ServerManager>> server_contexts;
 std::atomic<ServerContextHandle> next_handle{1};
-CreateHandlerCallback create_handler_callback;
 }
 
 CSHARP_API ServerContextHandle luxon_csharp_server_context_create() {
@@ -33,8 +32,6 @@ CSHARP_API void luxon_csharp_server_context_configure_server(const ServerContext
 
 CSHARP_API void luxon_csharp_server_context_destroy(const ServerContextHandle handle) { server_contexts.erase(handle); }
 
-CSHARP_API void luxon_csharp_set_create_handler_callback(const CreateHandlerCallback callback) { create_handler_callback = callback; }
-
 // TODO: Maybe move this into handler.cpp and the handler interface
 CSHARP_API void luxon_csharp_server_context_register_server(const ServerContextHandle handle, const char* name) {
     const auto str = std::string(name);
@@ -44,7 +41,7 @@ CSHARP_API void luxon_csharp_server_context_register_server(const ServerContextH
         const auto peer_handle = register_peer(peer);
 
         ensure_non_coroutine_call(manager, [&managedObjectHandle, &str, &peer_handle] { 
-            managedObjectHandle = create_handler_callback(str.c_str(), peer_handle);
+            managedObjectHandle = interop::create_handler_instance(str, peer_handle);
         });
 
         return std::static_pointer_cast<server::HandlerBase>(
