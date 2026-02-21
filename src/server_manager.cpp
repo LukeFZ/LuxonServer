@@ -154,10 +154,14 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
         }
         // Handle "External" Section
         else if (key == "External") {
-            std::string extType;
-            ServerProtocol extProto = ServerProtocol::UDP;
-            std::string extAddr;
-            bool addrFound = false;
+            if (section.IsSequence()) {
+                for (auto itemIt = section.Begin(); itemIt != section.End(); itemIt++) {
+                    Yaml::Node& item = (*itemIt).second;
+
+                    std::string extType;
+                    ServerProtocol extProto = ServerProtocol::UDP;
+                    std::string extAddr;
+                    bool addrFound = false;
 
                     if (!item["type"].IsNone()) {
                         extType = item["type"].As<std::string>();
@@ -171,8 +175,10 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
                         addrFound = true;
                     }
 
-            if (registered_server_factories_.contains(extType) && addrFound)
-                endpoints.push_back({extType, extProto, extAddr});
+                    if (registered_server_factories_.contains(extType) && addrFound)
+                        endpoints.push_back({extType, extProto, extAddr});
+                }
+            }
         }
 #ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Handle "Http Server" Section
@@ -550,9 +556,9 @@ void ServerManager::setup() {
     }
 }
 
-void ServerManager::configure_server(const std::string &name, const std::string &address, const uint16_t port, bool external) {
+void ServerManager::configure_server(const std::string &name, const std::string &address, const uint16_t port, ServerProtocol protocol) {
     configs_.emplace_back(name, port);
-    endpoints.emplace_back(name, address, external);
+    endpoints.emplace_back(name, protocol, address);
 
     log_->info("Configured {} to listen on {}:{}", name, address, port);
 }

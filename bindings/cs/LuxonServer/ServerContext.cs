@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using LuxonServer.Models;
 
 namespace LuxonServer;
 
@@ -28,12 +29,12 @@ public sealed class ServerContext : IDisposable
         NativeMethods.luxon_csharp_server_context_stop(Handle);
     }
 
-    public void ConfigureServer(string name, IPEndPoint endpoint, bool external = false)
+    public void ConfigureServer(string name, IPEndPoint endpoint, ServerProtocol protocol = ServerProtocol.Udp)
     {
         var address = endpoint.ToString();
         var port = (ushort)endpoint.Port;
 
-        NativeMethods.luxon_csharp_server_context_configure_server(Handle, name, address, port, external);
+        NativeMethods.luxon_csharp_server_context_configure_server(Handle, name, address, port, protocol);
     }
 
     public void RegisterServer(string name, Func<HandlerBase> factory)

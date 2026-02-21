@@ -19,7 +19,7 @@ CSHARP_API void luxon_csharp_register_plugin(const char* name) {
     server::game_plugins::registry::register_(name_str, [name_str](server::Game *game) {
         ObjectHandle handle = 0;
 
-        ensure_non_coroutine_call(game->app->server_manager,
+        ensure_non_coroutine_call(game->lobby->app->server_manager,
                                   [&handle, &name_str] { handle = interop::create_plugin_instance(name_str); });
 
         return std::make_unique<CSharpPlugin>(game, name_str, std::make_shared<ManagedObject>(handle));
@@ -30,17 +30,17 @@ CSharpPlugin::CSharpPlugin(server::Game *game, const std::string_view plugin_nam
     : PluginBase(game, plugin_name), object_(std::move(object)) { }
 
 CSharpPlugin::~CSharpPlugin() {
-    ensure_non_coroutine_call(game_->app->server_manager, [this] { interop::destroy_plugin_instance(object_->handle()); });
+    ensure_non_coroutine_call(game_->lobby->app->server_manager, [this] { interop::destroy_plugin_instance(object_->handle()); });
 }
 
 void CSharpPlugin::OnAttach() { 
-    ensure_non_coroutine_call(game_->app->server_manager, [this] { interop::on_attach(object_->handle()); });
+    ensure_non_coroutine_call(game_->lobby->app->server_manager, [this] { interop::on_attach(object_->handle()); });
 }
 
-server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationRequestMessage &req,
+server::game_plugins::Result CSharpPlugin::OnCreateGame(const luxon::ser::OperationRequestMessage& req,
     server::game_plugins::OnCreateGameCallInfo &onCreateGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&] {
+    ensure_non_coroutine_call(game_->lobby->app->server_manager, [&] {
         const auto serialized_parameters = serialize_variant(req.parameters);
 
         NativeOperationRequestMessage message;
@@ -55,34 +55,36 @@ server::game_plugins::Result CSharpPlugin::OnCreateGame(luxon::ser::OperationReq
     return result;
 }
 
-server::game_plugins::Result CSharpPlugin::BeforeJoin(luxon::ser::OperationRequestMessage &req,
+server::game_plugins::Result CSharpPlugin::BeforeJoin(const luxon::ser::OperationRequestMessage& req,
     server::game_plugins::BeforeJoinGameCallInfo &beforeJoinGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = interop::before_join(object_->handle()); });
+    ensure_non_coroutine_call(game_->lobby->app->server_manager, [&result, this] { result = interop::before_join(object_->handle()); });
     return result;
 }
 
-server::game_plugins::Result CSharpPlugin::OnJoinGame(luxon::ser::OperationRequestMessage &req, server::game_plugins::OnJoinGameCallInfo &onJoinGameCallInfo) {
+server::game_plugins::Result CSharpPlugin::OnJoinGame(const luxon::ser::OperationRequestMessage& req,
+                                                      server::game_plugins::OnJoinGameCallInfo& onJoinGameCallInfo) {
     server::game_plugins::Result result{};
-    ensure_non_coroutine_call(game_->app->server_manager, [&result, this] { result = interop::on_join_game(object_->handle()); });
+    ensure_non_coroutine_call(game_->lobby->app->server_manager, [&result, this] { result = interop::on_join_game(object_->handle()); });
     return result;
 }
 
-server::game_plugins::Result CSharpPlugin::OnLeave(luxon::ser::OperationRequestMessage &req, server::game_plugins::OnLeaveGameCallInfo &onLeaveGameCallInfo) {
+server::game_plugins::Result CSharpPlugin::OnLeave(const luxon::ser::OperationRequestMessage& req,
+                                                   server::game_plugins::OnLeaveGameCallInfo& onLeaveGameCallInfo) {
     return PluginBase::OnLeave(req, onLeaveGameCallInfo);
 }
 
-server::game_plugins::Result CSharpPlugin::OnRaiseEvent(luxon::ser::OperationRequestMessage &req,
+server::game_plugins::Result CSharpPlugin::OnRaiseEvent(const luxon::ser::OperationRequestMessage& req,
     server::game_plugins::OnRaiseEventCallInfo &onRaiseEventCallInfo) {
     return PluginBase::OnRaiseEvent(req, onRaiseEventCallInfo);
 }
 
-server::game_plugins::Result CSharpPlugin::BeforeSetProperties(luxon::ser::OperationRequestMessage &req,
+server::game_plugins::Result CSharpPlugin::BeforeSetProperties(const luxon::ser::OperationRequestMessage& req,
     server::game_plugins::BeforeSetPropertiesCallInfo &beforeSetPropertiesCallInfo) {
     return PluginBase::BeforeSetProperties(req, beforeSetPropertiesCallInfo);
 }
 
-server::game_plugins::Result CSharpPlugin::OnSetProperties(luxon::ser::OperationRequestMessage &req,
+server::game_plugins::Result CSharpPlugin::OnSetProperties(const luxon::ser::OperationRequestMessage& req,
     server::game_plugins::OnSetPropertiesCallInfo &onSetPropertiesCallInfo) {
     return PluginBase::OnSetProperties(req, onSetPropertiesCallInfo);
 }

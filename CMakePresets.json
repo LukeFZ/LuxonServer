@@ -20,7 +20,8 @@
         "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/vcpkg/scripts/buildsystems/vcpkg.cmake",
         "CMAKE_LIBRARY_OUTPUT_DIRECTORY": "${sourceDir}/build/artifacts/${presetName}",
         "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/build/artifacts/${presetName}",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": true
+        "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+        "LUXON_SERVER_USE_SPDLOG": false
       }
     },
     {

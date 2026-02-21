@@ -60,11 +60,11 @@ void CSharpHandler::HandleHTTPRequest(const luxon::HttpRequest &request, const l
     HandlerBase::HandleHTTPRequest(request, cmd_header);
 }
 
-void CSharpHandler::HandleInitRequest(luxon::ser::InitMessage &req, const luxon::enet::EnetCommandHeader &cmd_header) {
+void CSharpHandler::HandleInitRequest(const luxon::ser::InitMessage& req, const luxon::enet::EnetCommandHeader& cmd_header) {
     HandlerBase::HandleInitRequest(req, cmd_header);
 }
 
-void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &req, bool is_encrypted, const luxon::enet::EnetCommandHeader &cmd_header) {
+void CSharpHandler::HandleOperationRequest(const luxon::ser::OperationRequestMessage& req, bool is_encrypted, const luxon::enet::EnetCommandHeader& cmd_header) {
     auto result = HandlerResult::Return;
     ensure_non_coroutine_call(server_manager_, [&] {
         const auto serialized_parameters = serialize_variant(req.parameters);
@@ -82,7 +82,7 @@ void CSharpHandler::HandleOperationRequest(luxon::ser::OperationRequestMessage &
     }
 }
 
-void CSharpHandler::HandleInternalOperationRequest(luxon::ser::InternalOperationRequestMessage &req, bool is_encrypted,
+void CSharpHandler::HandleInternalOperationRequest(const luxon::ser::InternalOperationRequestMessage& req, bool is_encrypted,
     const luxon::enet::EnetCommandHeader &cmd_header) {
     HandlerBase::HandleInternalOperationRequest(req, is_encrypted, cmd_header);
 }

@@ -138,9 +138,9 @@ public:
     /// \param name Name of server, e.g. "NameServer", "MasterServer", "GameServer"
     /// \param address Address to bind server to
     /// \param port Port to bind server to
-    /// \param external Whether this is a Photon or non-Photon server
+    /// \param protocol The protocol of the server
     ///
-    void configure_server(const std::string& name, const std::string& address, uint16_t port, bool external);
+    void configure_server(const std::string& name, const std::string& address, uint16_t port, ServerProtocol protocol);
 
     ///
     /// \brief Registers a custom server type.
@@ -197,21 +197,22 @@ public:
     /// \param server_proto Protocol of server to get
     /// \return Externally reachable address of server, e.g. "104.18.26.120:5058"
     ///
-    const std::string& get_endpoint_of(ServerType server_type, ServerProtocol server_proto);
+    const std::string& get_endpoint_of(const std::string& server_type, ServerProtocol server_proto);
 
     ///
     /// \brief Gets the external address of a random server of a given builtin type
     /// \param server_type Type of server to request
+    /// \param server_proto Protocol of server to get
     /// \return External address of server, e.g. "127.0.0.1:5058"
     ///
-    const std::string& get_endpoint_of(ServerType server_type) {
+    const std::string& get_endpoint_of(ServerType server_type, ServerProtocol server_proto) {
         switch (server_type) {
         case ServerType::NameServer:
-            return get_endpoint_of("NameServer");
+            return get_endpoint_of("NameServer", server_proto);
         case ServerType::MasterServer:
-            return get_endpoint_of("MasterServer");
+            return get_endpoint_of("MasterServer", server_proto);
         case ServerType::GameServer:
-            return get_endpoint_of("GameServer");
+            return get_endpoint_of("GameServer", server_proto);
         default:
             throw std::runtime_error("Invalid builtin server type");
         }

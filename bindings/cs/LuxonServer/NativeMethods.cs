@@ -30,7 +30,7 @@ internal static unsafe partial class NativeMethods
 
     [LibraryImport(LibraryName, StringMarshalling = StringMarshalling.Utf8)]
     internal static partial void luxon_csharp_server_context_configure_server(ServerContextHandle handle, string name, string address,
-        ushort port, [MarshalAs(UnmanagedType.U1)] bool external);
+        ushort port, ServerProtocol protocol);
 
     [LibraryImport(LibraryName)]
     internal static partial void luxon_csharp_server_context_destroy(ServerContextHandle handle);

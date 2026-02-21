@@ -26,8 +26,8 @@ CSHARP_API void luxon_csharp_server_context_run(const ServerContextHandle handle
 CSHARP_API void luxon_csharp_server_context_stop(const ServerContextHandle handle) { server_contexts[handle]->stop(); }
 
 CSHARP_API void luxon_csharp_server_context_configure_server(const ServerContextHandle handle, const char *name, const char *address, const uint16_t port,
-                                                             const bool external) {
-    server_contexts[handle]->configure_server(name, address, port, external);
+                                                             const server::ServerProtocol protocol) {
+    server_contexts[handle]->configure_server(name, address, port, protocol);
 }
 
 CSHARP_API void luxon_csharp_server_context_destroy(const ServerContextHandle handle) { server_contexts.erase(handle); }

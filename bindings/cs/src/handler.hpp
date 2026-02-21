@@ -19,8 +19,8 @@ public:
     void HandleENetConnectionStateChange(luxon::enet::EnetConnectionState state) override;
     void HandleENetCommand(const luxon::enet::EnetCommand &cmd) override;
     void HandleHTTPRequest(const luxon::HttpRequest &request, const luxon::enet::EnetCommandHeader &cmd_header) override;
-    void HandleInitRequest(luxon::ser::InitMessage &req, const luxon::enet::EnetCommandHeader &cmd_header) override;
-    void HandleOperationRequest(luxon::ser::OperationRequestMessage &req, bool is_encrypted, const luxon::enet::EnetCommandHeader &cmd_header) override;
-    void HandleInternalOperationRequest(luxon::ser::InternalOperationRequestMessage &req, bool is_encrypted,
+    void HandleInitRequest(const luxon::ser::InitMessage& req, const luxon::enet::EnetCommandHeader& cmd_header) override;
+    void HandleOperationRequest(const luxon::ser::OperationRequestMessage& req, bool is_encrypted, const luxon::enet::EnetCommandHeader& cmd_header) override;
+    void HandleInternalOperationRequest(const luxon::ser::InternalOperationRequestMessage& req, bool is_encrypted,
         const luxon::enet::EnetCommandHeader &cmd_header) override;
 };
