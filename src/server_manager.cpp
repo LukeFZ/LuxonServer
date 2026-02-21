@@ -97,15 +97,15 @@ ServerManager::ServerManager() : running_(false) {
 #endif
 
     register_server("NameServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) { 
-        return std::static_pointer_cast<HandlerBase>(std::make_shared<NameServerHandler>(manager, peer));
+        return HandlerPtr<NameServerHandler>(new NameServerHandler(manager, peer));
     });
 
     register_server("MasterServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) {
-        return std::static_pointer_cast<HandlerBase>(std::make_shared<MasterServerHandler>(manager, peer));
+        return HandlerPtr<MasterServerHandler>(new MasterServerHandler(manager, peer));
     });
 
     register_server("GameServer", [](ServerManager& manager, const std::shared_ptr<Peer>& peer) {
-        return std::static_pointer_cast<HandlerBase>(std::make_shared<GameServerHandler>(manager, peer));
+        return HandlerPtr<GameServerHandler>(new GameServerHandler(manager, peer));
     });
 }
 

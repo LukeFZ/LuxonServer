@@ -127,6 +127,8 @@ if (LUXON_SERVER_ENABLE_PLUGINS)
     )
     target_link_libraries(luxon_server minicoropp)
     target_compile_definitions(luxon_server PRIVATE LUXON_SERVER_ENABLE_PLUGINS)
+    # /!\ temporary workaround to fix minicoro on windows
+    target_compile_definitions(luxon_server PRIVATE MINICOROPP_LIBRARY)
 endif()
 
 if (LUXON_SERVER_USE_SPDLOG)
