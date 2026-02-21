@@ -55,8 +55,8 @@ struct ServerConfig {
 
 struct ServerEndpoint {
     std::string type;
+    ServerProtocol protocol{};
     std::string address;
-    bool external;
 };
 
 class ServerManager {
@@ -193,10 +193,11 @@ public:
 
     ///
     /// \brief Gets the external address of a random server of given type
-    /// \param server_type Type of server to request
-    /// \return External address of server, e.g. "127.0.0.1:5058"
+    /// \param server_type Type of server to get
+    /// \param server_proto Protocol of server to get
+    /// \return Externally reachable address of server, e.g. "104.18.26.120:5058"
     ///
-    const std::string& get_endpoint_of(const std::string& server_type);
+    const std::string& get_endpoint_of(ServerType server_type, ServerProtocol server_proto);
 
     ///
     /// \brief Gets the external address of a random server of a given builtin type

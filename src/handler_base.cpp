@@ -3,7 +3,6 @@
 
 #include "handler_base.hpp"
 #include "global.hpp"
-#include "codes.hpp"
 #include "peer_persistence.hpp"
 
 #include <string_view>
@@ -11,9 +10,11 @@
 #include <charconv>
 #include <commoncpp/utils.hpp>
 #include <luxon/ser_interface.hpp>
-#include <luxon/ser_codes.hpp>
 #include <luxon/http_parser.hpp>
 #include <luxon/visualizer.hpp>
+#include <luxon/internal_codes.hpp>
+#include <luxon/common_codes.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 namespace server {
 namespace {
@@ -160,7 +161,7 @@ void HandlerBase::HandleHTTPRequest(const HttpRequest& request, const enet::Enet
     }
 }
 
-void HandlerBase::HandleInitRequest(ser::InitMessage& req, const enet::EnetCommandHeader& cmd_header) {
+void HandlerBase::HandleInitRequest(const ser::InitMessage& req, const enet::EnetCommandHeader& cmd_header) {
     // Try to create new protocol implementation for given version
     auto protocol = ser::IProtocol::make(req.protocol_major, req.protocol_minor);
 
@@ -175,7 +176,7 @@ void HandlerBase::HandleInitRequest(ser::InitMessage& req, const enet::EnetComma
     }
 }
 
-void HandlerBase::HandleOperationRequest(ser::OperationRequestMessage& req, bool is_encrypted, const enet::EnetCommandHeader& cmd_header) {
+void HandlerBase::HandleOperationRequest(const ser::OperationRequestMessage& req, bool is_encrypted, const enet::EnetCommandHeader& cmd_header) {
     // Only answer unknown operations on channel 0
     if (cmd_header.channel_id != 0)
         return;
@@ -195,11 +196,12 @@ void HandlerBase::HandleOperationRequest(ser::OperationRequestMessage& req, bool
     peer_->log->warn("Client sent operation request with unknown opcode: {}", req.operation_code);
 }
 
-void HandlerBase::HandleInternalOperationRequest(ser::InternalOperationRequestMessage& req, bool is_encrypted, const enet::EnetCommandHeader& cmd_header) {
+void HandlerBase::HandleInternalOperationRequest(const ser::InternalOperationRequestMessage& req, bool is_encrypted,
+                                                 const enet::EnetCommandHeader& cmd_header) {
     if (cmd_header.channel_id != 0)
         return;
 
-    if (req.operation_code == ser::Codes::IOpInitEncryption) {
+    if (req.operation_code == ICodes::IOpInitEncryption) {
         // Answer crypto handshake
         auto expected_response = proto_->HandleInitEncryptionRequest(req);
         if (!expected_response) {
@@ -209,18 +211,21 @@ void HandlerBase::HandleInternalOperationRequest(ser::InternalOperationRequestMe
         send(proto_->Serialize(*expected_response));
 
         peer_->log->info("Established encryption");
-    } else if (req.operation_code == ser::Codes::IOpPing) {
+    } else if (req.operation_code == ICodes::IOpPing) {
         // Answer internal pings
-        ser::OperationResponseMessage resp;
-        resp.operation_code = ser::Codes::IOpPing;
+        ser::InternalOperationResponseMessage resp;
+        resp.operation_code = ICodes::IOpPing;
         resp.return_code = ErrorCodes::Core::Ok;
 
-        const ser::Value& client_ts = req.parameters[ser::Codes::IKeyClientTimestamp];
-        resp.parameters[ser::Codes::IKeyClientTimestamp] = client_ts;
-        resp.parameters[ser::Codes::IKeyServerTimestamp] = static_cast<int32_t>(peer_->enet_peer->get_server_time());
-        peer_->log->info("Got internal operation ping: TS={}", client_ts.get<int32_t>());
+        const ser::Value& client_ts = req.parameters[ICodes::IKeyClientTimestamp];
+        resp.parameters[ICodes::IKeyClientTimestamp] = client_ts;
+        resp.parameters[ICodes::IKeyServerTimestamp] = static_cast<int32_t>(peer_->enet_peer->get_server_time());
 
         send(proto_->Serialize(resp));
+    } else if (req.operation_code == ICodes::IOpTransportProtocol) {
+        // Quietly process transport protocol tell
+        req.parameters[ICodes::IKeyTransportProtocol].store_if(reinterpret_cast<uint8_t&>(peer_->transport_protocol));
+        peer_->log->info("Got informed about transport protocol: {}", magic_enum::enum_name(peer_->transport_protocol));
     } else {
         // Answer unknown operation
         const ser::OperationResponseMessage resp{.operation_code = req.operation_code,

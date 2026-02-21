@@ -383,13 +383,18 @@ std::shared_ptr<App> HttpServer::find_app_by_id(std::string_view app_id) {
     return nullptr;
 }
 
-Lobby *HttpServer::find_lobby_by_index(App *app, std::string_view index_str) {
+Lobby *HttpServer::find_lobby(App *app, std::string_view name, uint8_t type) {
     const auto lobbies = app->get_lobbies();
-    size_t idx = 0;
-    const auto [ptr, ec] = std::from_chars(index_str.data(), index_str.data() + index_str.size(), idx);
-    if (ec == std::errc() && idx < lobbies.size())
-        return lobbies[idx];
-    return nullptr;
+    auto res = lobbies.find({name, type});
+    if (res == lobbies.end())
+        return nullptr;
+    return res->second.lock().get();
+}
+
+Lobby *HttpServer::find_lobby(App *app, std::string_view name) {
+    const uint8_t type = name.back() - '0';
+    name = name.substr(0, name.size() - 1);
+    return find_lobby(app, name, type);
 }
 
 // Routing
@@ -500,24 +505,23 @@ json HttpServer::route_request(std::string_view method, std::string path) {
         // /apps/{app}/lobbies
         if (segs.size() == 3 && segs[2] == "lobbies") {
             json res = json::array();
-            int idx = 0;
-            for (auto *lobby : app->get_lobbies()) {
-                res.push_back({{"index", idx++},
-                               {"name", lobby->name},
-                               {"type", lobby->type},
-                               {"games_count", lobby->games.size()},
-                               {"peer_count", lobby->get_peer_count()}});
+            for (const auto& [name, weak_lobby] : app->get_lobbies()) {
+                if (auto lobby = weak_lobby.lock())
+                    res.push_back({{"name", lobby->name + char(lobby->type + '0')},
+                                   {"type", lobby->type},
+                                   {"games_count", lobby->games.size()},
+                                   {"peer_count", lobby->get_peer_count()}});
             }
             return res;
         }
 
-        // Lobby roots: /apps/{app}/lobbies/{index}/...
+        // Lobby roots: /apps/{app}/lobbies/{name}/...
         if (segs.size() >= 4 && segs[2] == "lobbies") {
-            const Lobby *lobby = find_lobby_by_index(app.get(), segs[3]);
+            const Lobby *lobby = find_lobby(app.get(), segs[3]);
             if (!lobby)
-                throw std::out_of_range("Lobby index invalid");
+                throw std::out_of_range("Lobby name invalid");
 
-            // /apps/{app}/lobbies/{index}/games
+            // /apps/{app}/lobbies/{name}/games
             if (segs.size() == 5 && segs[4] == "games") {
                 json res = json::array();
                 for (auto& [gid, weak_g] : lobby->games) {
@@ -527,13 +531,13 @@ json HttpServer::route_request(std::string_view method, std::string path) {
                                        {"max_players", g->max_peers},
                                        {"is_open", g->is_open},
                                        {"is_visible", g->is_visible},
-                                       {"basic_props", json_conv::photon_hash_to_json(g->get_basic_game_props())}});
+                                       {"lobby_props", json_conv::photon_hash_to_json(g->get_lobby_game_props())}});
                     }
                 }
                 return res;
             }
 
-            // Game roots: /apps/{app}/lobbies/{index}/games/{game_id}/...
+            // Game roots: /apps/{app}/lobbies/{name}/games/{game_id}/...
             if (segs.size() >= 6 && segs[4] == "games") {
                 std::string_view gameId = segs[5];
                 auto it = lobby->games.find(gameId);
@@ -543,7 +547,7 @@ json HttpServer::route_request(std::string_view method, std::string path) {
                 if (!game)
                     throw std::out_of_range("Game expired");
 
-                // /apps/{app}/lobbies/{index}/games/{game_id}
+                // /apps/{app}/lobbies/{name}/games/{game_id}
                 if (segs.size() == 6)
                     return {{"id", game->id},
                             {"master_client_id", game->master_actor},
@@ -553,7 +557,7 @@ json HttpServer::route_request(std::string_view method, std::string path) {
                             {"expected_users", game->expected_users}, // automatic json conversion for set<string>
                             {"full_props", json_conv::photon_hash_to_json(game->get_game_props())}};
 
-                // /apps/{app}/lobbies/{index}/games/{game_id}/actors
+                // /apps/{app}/lobbies/{name}/games/{game_id}/actors
                 if (segs.size() == 7 && segs[6] == "actors") {
                     json res = json::array();
                     for (auto& gp : game->peers) {
@@ -576,7 +580,7 @@ json HttpServer::route_request(std::string_view method, std::string path) {
                     return res;
                 }
 
-                // /apps/{app}/lobbies/{index}/games/{game_id}/actors/{actor_id}
+                // /apps/{app}/lobbies/{name}/games/{game_id}/actors/{actor_id}
                 if (segs.size() == 8 && segs[6] == "actors") {
                     int actorId = 0;
                     std::from_chars(segs[7].data(), segs[7].data() + segs[7].size(), actorId);

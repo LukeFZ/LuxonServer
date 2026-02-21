@@ -7,26 +7,32 @@
 
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 #include <memory>
+#include <cstdint>
 
 namespace server {
 class ServerManager;
 struct Lobby;
 
+using LobbyId = std::pair<std::string_view, uint8_t>;
+
+struct LobbyIdHash {
+    size_t operator()(const LobbyId& k) const noexcept;
+};
+
 class App {
     App(ServerManager& server_manager, std::string_view id, std::string_view version);
 
-    // Non-public: Must not be modified with any peers connected, would result in dangling pointers from `Game::lobby` to here
-    std::vector<Lobby> lobbies_;
+    std::unordered_map<LobbyId, std::weak_ptr<Lobby>, LobbyIdHash> lobbies_;
 
 public:
     ServerManager& server_manager;
     const std::string_view id, version;
 
-    Lobby *get_default_lobby();
-    std::vector<Lobby *> get_lobbies();
-    std::vector<const Lobby *> get_lobbies() const;
+    std::shared_ptr<Lobby> get_lobby(LobbyId id = {});
+    const std::unordered_map<LobbyId, std::weak_ptr<Lobby>, LobbyIdHash>& get_lobbies() { return lobbies_; }
 
     std::shared_ptr<App> get_shared() { return get(server_manager, std::string(id), std::string(version)); }
 

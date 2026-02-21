@@ -4,9 +4,9 @@
 #include "game.hpp"
 #include "global.hpp"
 #include "server_manager.hpp"
-#include "codes.hpp"
 
 #include <luxon/ser_interface.hpp>
+#include <luxon/common_codes.hpp>
 
 namespace server {
 bool GamePeer::has_interest_group(uint8_t group) const {
@@ -117,7 +117,7 @@ restart:
     if (peers.empty()) {
         // Lobby is empty now, use a scheduled tasks to stay alive for at least empty_game_ttl milliseconds
         if (empty_game_ttl > 0)
-            app->server_manager.add_scheduled_task(empty_game_ttl, [game = shared_from_this()]() {});
+            lobby->app->server_manager.add_scheduled_task(empty_game_ttl, [game = shared_from_this()]() {});
 
         // Call into plugins
         GAME_PLUGINS_INVOKE({
@@ -144,9 +144,9 @@ bool Game::flood_peer(GamePeer *game_peer) {
 
             // Serialize event
             ser::EventMessage event_data{.event_code = event.code, .parameters = event.top_params};
-            if (event.sender_actor_id)
-                event_data.parameters[DictKeyCodes::GameAndActor::ActorNo] = static_cast<int32_t>(event.sender_actor_id);
-            event_data.parameters[DictKeyCodes::RoutingAndEvents::Data] = event.data;
+            event_data.parameters[DictKeyCodes::GameAndActor::ActorNo] = static_cast<int32_t>(event.sender_actor_id);
+            if (!event.data.is_null())
+                event_data.parameters[DictKeyCodes::RoutingAndEvents::Data] = event.data;
 
             // Cached events are re-sent as if they were fresh to the joining player
             const auto expected_event_payload = peer->protocol->Serialize(event_data, false);
@@ -174,8 +174,7 @@ GamePeer *Game::find_peer(int32_t actor_id) {
 void Game::broadcast_event(Event& event) {
     // Serialize event once if not cached
     ser::EventMessage event_data{.event_code = event.code, .parameters = std::move(event.top_params)};
-    if (event.sender_actor_id)
-        event_data.parameters[DictKeyCodes::GameAndActor::ActorNo] = static_cast<int32_t>(event.sender_actor_id);
+    event_data.parameters[DictKeyCodes::GameAndActor::ActorNo] = static_cast<int32_t>(event.sender_actor_id);
     if (!event.data.is_null())
         event_data.parameters[DictKeyCodes::RoutingAndEvents::Data] = std::move(event.data);
 
@@ -272,7 +271,7 @@ int16_t Game::validate_join(const std::string& user_id, size_t new_expected_user
 
 void Game::trigger_lobby_update() {
     auto shared_this = shared_from_this();
-    for (auto& handler : lobby.game_list_update_handlers)
+    for (auto& handler : lobby->game_list_update_handlers)
         handler.game_change(shared_this);
 }
 
@@ -310,11 +309,16 @@ ser::Value Game::get_game_prop(const ser::Value& key) {
     return res->second;
 }
 
-ser::Hashtable Game::get_basic_game_props() {
+ser::Hashtable Game::get_lobby_game_props() {
     ser::Hashtable fres;
     fres[GameProps::PlayerCount] = static_cast<uint8_t>(peers.size());
     fres[GameProps::IsOpen] = is_open;
     fres[GameProps::MaxPlayers] = max_peers;
+
+    for (const auto& key : lobby_props)
+        if (custom_props.contains(key))
+            fres.emplace(key, custom_props[key]);
+
     return fres;
 }
 
@@ -376,9 +380,16 @@ bool Game::expect_game_props(ser::Hashtable expected) {
     if (!ok)
         return false;
 
-    for (const auto& [key, value] : expected)
+    for (const auto& [key, value] : expected) {
+#define PROP_MAP_ENTRY(game_param, type, var, updates_lobby)                                                                                                   \
+    if (key == GameProps::game_param)                                                                                                                          \
+        continue;
+        PROP_MAP
+#undef PROP_MAP_ENTRY
+
         if ((!custom_props.contains(key) && (!value.is_null() || !(flags & GameFlags::DeleteNullProps))) || custom_props.at(key) != value)
             return false;
+    }
 
     return true;
 }

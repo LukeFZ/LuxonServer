@@ -64,8 +64,7 @@ struct Event {
 };
 
 struct Game : std::enable_shared_from_this<Game> {
-    const std::shared_ptr<App> app;
-    Lobby& lobby;
+    const std::shared_ptr<Lobby> lobby;
     const std::string id;
 
     ~Game();
@@ -87,7 +86,7 @@ struct Game : std::enable_shared_from_this<Game> {
     std::vector<std::string> lobby_props;
     std::list<Event> event_cache;
 
-    Game(std::shared_ptr<App> app, Lobby& lobby, std::string id) : app(std::move(app)), lobby(lobby), id(std::move(id)) {}
+    Game(std::shared_ptr<Lobby> lobby, std::string id) : lobby(std::move(lobby)), id(std::move(id)) {}
 
     std::list<GamePeer> peers;
 
@@ -152,7 +151,7 @@ struct Game : std::enable_shared_from_this<Game> {
     /// \brief Gets all well-known game properties that are to be shown in lobby
     /// \return Hashtable with well-known keys/value property pairs
     ///
-    ser::Hashtable get_basic_game_props();
+    ser::Hashtable get_lobby_game_props();
     ///
     /// \brief Gets all game properties
     /// \param no_custom Excludes custom properties
@@ -192,8 +191,8 @@ struct Game : std::enable_shared_from_this<Game> {
 
 #ifdef LUXON_SERVER_ENABLE_PLUGINS
     template <typename InfoStruct>
-    game_plugins::Result execute_plugin_chain(game_plugins::Result (game_plugins::PluginBase::*method)(luxon::ser::OperationRequestMessage&, InfoStruct&),
-                                              luxon::ser::OperationRequestMessage& req, InfoStruct& info) {
+    game_plugins::Result execute_plugin_chain(game_plugins::Result (game_plugins::PluginBase::*method)(const luxon::ser::OperationRequestMessage&, InfoStruct&),
+                                              const luxon::ser::OperationRequestMessage& req, InfoStruct& info) {
         for (const auto& plugin : plugins) {
             game_plugins::Result result = ((*plugin).*method)(req, info);
             if (result != game_plugins::Result::Continue)

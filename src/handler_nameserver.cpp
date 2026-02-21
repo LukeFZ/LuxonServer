@@ -5,12 +5,12 @@
 #include "global.hpp"
 #include "server_manager.hpp"
 #include "authentication.hpp"
-#include "codes.hpp"
 
 #include <luxon/ser_interface.hpp>
+#include <luxon/common_codes.hpp>
 
 namespace server {
-void NameServerHandler::HandleOperationRequest(ser::OperationRequestMessage& req, bool is_encrypted, const enet::EnetCommandHeader& cmd_header) {
+void NameServerHandler::HandleOperationRequest(const ser::OperationRequestMessage& req, bool is_encrypted, const enet::EnetCommandHeader& cmd_header) {
     if (cmd_header.channel_id != 0)
         return HandlerBase::HandleOperationRequest(req, is_encrypted, cmd_header);
 
@@ -25,7 +25,7 @@ void NameServerHandler::HandleOperationRequest(ser::OperationRequestMessage& req
             // Add details if authentication was successful
             if (resp.return_code == ErrorCodes::Core::Ok) {
                 resp.parameters[DictKeyCodes::LoadBalancing::UserId] = peer_->persistent->user_id;
-                resp.parameters[DictKeyCodes::LoadBalancing::Address] = server_manager_.get_endpoint_of(ServerType::MasterServer);
+                resp.parameters[DictKeyCodes::LoadBalancing::Address] = server_manager_.get_endpoint_of(ServerType::MasterServer, peer_->transport_protocol);
             }
 
             // Send payload
@@ -37,7 +37,8 @@ void NameServerHandler::HandleOperationRequest(ser::OperationRequestMessage& req
             // Give dummy response  TODO: Give real response
             ser::OperationResponseMessage resp{.operation_code = OpCodes::RpcAndMisc::GetRegions, .return_code = 0};
             resp.parameters[DictKeyCodes::AuthAndLobby::Region] = std::vector<std::string>{"eu"};
-            resp.parameters[DictKeyCodes::LoadBalancing::Address] = std::vector<std::string>{server_manager_.get_endpoint_of(ServerType::MasterServer)};
+            resp.parameters[DictKeyCodes::LoadBalancing::Address] =
+                std::vector<std::string>{server_manager_.get_endpoint_of(ServerType::MasterServer, peer_->transport_protocol)};
             send(proto_->Serialize(resp));
             return;
         }

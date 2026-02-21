@@ -44,9 +44,6 @@
 #include "platform.hpp"
 #include "peer.hpp"
 #include "logger.hpp"
-#ifdef LUXON_SERVER_ENABLE_PLUGINS
-#include "coroutine.hpp"
-#endif
 #include "handler_nameserver.hpp"
 #include "handler_masterserver.hpp"
 #include "handler_gameserver.hpp"
@@ -58,18 +55,31 @@
 #include <sstream>
 #include <format>
 #include <random>
-#ifdef LUXON_SERVER_ENABLE_PLUGINS
-#include <thread>
-#endif
 #include <exception>
 #include <stdexcept>
 #include <algorithm>
+#ifdef LUXON_SERVER_ENABLE_PLUGINS
+#include <thread>
+#include <minicoropp.hpp>
+#endif
 #include <luxon/ser_gp_binary_v18.hpp>
 #include <luxon/ser_encryption.hpp>
 #include <luxon/visualizer.hpp>
 
 namespace server {
 namespace {
+ServerProtocol StringToEndpointProtocol(const std::string& str) {
+    if (str == "UDP")
+        return ServerProtocol::UDP;
+    if (str == "TCP")
+        return ServerProtocol::TCP;
+    if (str == "WebSocket")
+        return ServerProtocol::WebSocket;
+
+    // Throw error
+    throw std::runtime_error("Unknown protocol: " + str);
+}
+
 std::string LoadFile(const std::string& filename) {
     std::ifstream f(filename, std::ios::binary);
     if (!f)
@@ -137,7 +147,7 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
                     }
                     if (!item["address"].IsNone()) {
                         std::string addr = item["address"].As<std::string>();
-                        endpoints.push_back({key, addr, false});
+                        endpoints.push_back({key, ServerProtocol::UDP, addr});
                     }
                 }
             }
@@ -145,25 +155,24 @@ ServerManager::ServerManager(const std::string& config_file) : ServerManager() {
         // Handle "External" Section
         else if (key == "External") {
             std::string extType;
+            ServerProtocol extProto = ServerProtocol::UDP;
             std::string extAddr;
             bool addrFound = false;
 
-            if (section.IsSequence()) {
-                for (auto itemIt = section.Begin(); itemIt != section.End(); itemIt++) {
-                    Yaml::Node& item = (*itemIt).second;
-
                     if (!item["type"].IsNone()) {
                         extType = item["type"].As<std::string>();
+                    }
+                    if (!item["protocol"].IsNone()) {
+                        std::string protoStr = item["protocol"].As<std::string>();
+                        extProto = StringToEndpointProtocol(protoStr);
                     }
                     if (!item["address"].IsNone()) {
                         extAddr = item["address"].As<std::string>();
                         addrFound = true;
                     }
-                }
-            }
 
             if (registered_server_factories_.contains(extType) && addrFound)
-                endpoints.push_back({extType, extAddr, true});
+                endpoints.push_back({extType, extProto, extAddr});
         }
 #ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Handle "Http Server" Section
@@ -275,13 +284,13 @@ bool ServerManager::delay(unsigned int milliseconds) {
 }
 #endif
 
-const std::string& ServerManager::get_endpoint_of(const std::string& server_type) {
+const std::string& ServerManager::get_endpoint_of(const std::string& server_type, ServerProtocol server_proto) {
     std::vector<const std::string *> candidates;
     candidates.reserve(endpoints.size());
 
     // Collect all valid addresses for the requested type
     for (const auto& endpoint : endpoints)
-        if (endpoint.type == server_type)
+        if (endpoint.type == server_type && endpoint.protocol == server_proto)
             candidates.push_back(&endpoint.address);
 
     // Handle cases where no config exists
@@ -319,27 +328,31 @@ void ServerManager::run() {
 
 bool ServerManager::run_once() {
     {
+#ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Start idle performance timer
         const auto start_time = std::chrono::steady_clock::now();
+#endif
 
 #ifndef LUXON_SERVER_POLL
         // Run sock selector
         sock_selector_.run(125);
 #endif
 
+#ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // End idle performance timer
         const auto end_time = std::chrono::steady_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
 
-#ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Store metric
         idle_time.add(static_cast<unsigned>(duration));
 #endif
     }
 
     {
+#ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Start busy performance timer
         const auto start_time = std::chrono::steady_clock::now();
+#endif
 
         // Check if slow update should be done
         const bool slow_update = last_slow_update_.get() > 250;
@@ -416,13 +429,11 @@ bool ServerManager::run_once() {
 #else
             http_server_->service();
 #endif
-#endif
 
         // End busy performance timer
         const auto end_time = std::chrono::steady_clock::now();
         const auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
 
-#ifdef LUXON_SERVER_ENABLE_WEBSERVER
         // Store metric
         busy_time.add(static_cast<unsigned>(duration));
 #endif
@@ -448,7 +459,7 @@ void ServerManager::setup() {
             // Construct peer
             auto peer = std::make_shared<Peer>();
             peer->enet_peer = enetPeer;
-            peer->log = create_logger(std::format("Peer {}@{})", enetPeer->peer_id(), enetPeer->remote_endpoint()->to_string()));
+            peer->log = create_logger(std::format("Peer {}@{}", enetPeer->peer_id(), enetPeer->remote_endpoint()->to_string()));
             peer->protocol = std::make_unique<ser::GpBinaryV18>(); // Default version
 #ifndef NDEBUG
             peer->log->set_level(log_level::trace);

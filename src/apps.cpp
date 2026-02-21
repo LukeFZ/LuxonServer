@@ -10,29 +10,28 @@
 #include <utility>
 
 namespace server {
-App::App(ServerManager& server_manager, std::string_view id, std::string_view version)
-    : server_manager(server_manager), id(id), version(version), lobbies_(1, {*this}) {}
-
-Lobby *App::get_default_lobby() {
-    if (lobbies_.size() == 1)
-        return &lobbies_[0];
-    for (Lobby& lobby : lobbies_)
-        if (lobby.name.empty())
-            return &lobby;
-    return nullptr;
+size_t LobbyIdHash::operator()(const LobbyId& k) const noexcept {
+    std::size_t h1 = std::hash<std::string_view>{}(k.first);
+    std::size_t h2 = std::hash<unsigned int>{}(k.second); // avoid uint8_t quirks
+    // hash combine
+    return h1 ^ (h2 + 0x9e3779b97f4a7c15ull + (h1 << 6) + (h1 >> 2));
 }
 
-std::vector<Lobby *> App::get_lobbies() {
-    std::vector<Lobby *> fres;
-    for (Lobby& lobby : lobbies_)
-        fres.push_back(&lobby);
-    return fres;
-}
+App::App(ServerManager& server_manager, std::string_view id, std::string_view version) : server_manager(server_manager), id(id), version(version) {}
 
-std::vector<const Lobby *> App::get_lobbies() const {
-    std::vector<const Lobby *> fres;
-    for (const Lobby& lobby : lobbies_)
-        fres.push_back(&lobby);
+std::shared_ptr<Lobby> App::get_lobby(LobbyId id) {
+    // Try to find lobby first
+    auto res = lobbies_.find(id);
+    if (res != lobbies_.end())
+        if (auto lobby = res->second.lock())
+            return lobby;
+
+    // Create lobby
+    std::shared_ptr<Lobby> fres(new Lobby(get_shared(), std::string(id.first), id.second), [this](Lobby *ptr) {
+        lobbies_.erase(LobbyId{ptr->name, ptr->type});
+        delete ptr;
+    });
+    lobbies_[{fres->name, fres->type}] = fres;
     return fres;
 }
 

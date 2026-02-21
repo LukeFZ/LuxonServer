@@ -4,7 +4,7 @@ Content Warning
 
 Bomb Bots Arena
 - Tries to use unimplemented/stubbed chat opcodes
-+ Freezes when beginning actual gameplay
+- Freezes when beginning actual gameplay
 
 Controlled Death
 + Loads in game, plays fine with bots
@@ -15,12 +15,16 @@ Ducks Can Drive
 KEABE: Kill 'Em All - Bunny Edition
 + Loads in game
 - Uses stubbed "FindFriends" MasterServer opcode
+- Uses non-byte keyed dictionaries
 
 Paint Warfare
 + Works flawlessly
 
 Phasmophobia
 + Works flawlessly
+
+R.E.P.O.
++ Loads in game
 
 Super Animal Royale:
 + Loads in game
