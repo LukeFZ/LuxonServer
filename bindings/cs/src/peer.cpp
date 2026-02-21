@@ -1,6 +1,8 @@
 #include "peer.hpp"
 
 #include <unordered_map>
+#include <atomic>
+
 #include <luxon/server/peer.hpp>
 #include <luxon/ser_types.hpp>
 

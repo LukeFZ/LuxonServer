@@ -2,6 +2,7 @@
 
 #include <luxon/server/game_plugin_base.hpp>
 #include <luxon/enet_protocol.hpp>
+#include "export.hpp"
 
 using ObjectHandle = intptr_t;
 using PeerHandle = intptr_t;
@@ -20,24 +21,24 @@ struct NativeOnCreateGameCallInfo {
 enum class HandlerResult : uint8_t { Return = 0, CallBase = 1 };
 
 struct InteropInterface {
-    void (__cdecl* free_object)(ObjectHandle handle);
+    void(CSHARP_FNPTR free_object)(ObjectHandle handle);
 
-    ObjectHandle (__cdecl* create_plugin_instance)(const char *name);
-    void (__cdecl* destroy_plugin_instance)(ObjectHandle handle);
+    ObjectHandle (CSHARP_FNPTR create_plugin_instance)(const char *name);
+    void (CSHARP_FNPTR destroy_plugin_instance)(ObjectHandle handle);
 
-    server::game_plugins::Result (__cdecl* on_attach)(ObjectHandle handle);
-    server::game_plugins::Result (__cdecl* on_create_game)(ObjectHandle handle, NativeOperationRequestMessage *message, NativeOnCreateGameCallInfo *info);
-    server::game_plugins::Result (__cdecl* before_join)(ObjectHandle handle);
-    server::game_plugins::Result (__cdecl* on_join_game)(ObjectHandle handle);
+    server::game_plugins::Result (CSHARP_FNPTR on_attach)(ObjectHandle handle);
+    server::game_plugins::Result (CSHARP_FNPTR on_create_game)(ObjectHandle handle, NativeOperationRequestMessage *message, NativeOnCreateGameCallInfo *info);
+    server::game_plugins::Result (CSHARP_FNPTR before_join)(ObjectHandle handle);
+    server::game_plugins::Result (CSHARP_FNPTR on_join_game)(ObjectHandle handle);
 
-    ObjectHandle(__cdecl *create_handler_instance)(const char *name, PeerHandle);
-    void (__cdecl* destroy_handler_instance)(ObjectHandle handle);
+    ObjectHandle(CSHARP_FNPTR create_handler_instance)(const char *name, PeerHandle);
+    void (CSHARP_FNPTR destroy_handler_instance)(ObjectHandle handle);
 
-    HandlerResult (__cdecl* handle_connect)(ObjectHandle handle);
-    HandlerResult (__cdecl* handle_disconnect)(ObjectHandle handle);
-    HandlerResult (__cdecl* handle_update)(ObjectHandle handle);
-    HandlerResult (__cdecl* handle_slow_update)(ObjectHandle handle);
-    HandlerResult (__cdecl* handle_operation_request)(ObjectHandle handle, NativeOperationRequestMessage *message, bool encrypted,
+    HandlerResult (CSHARP_FNPTR handle_connect)(ObjectHandle handle);
+    HandlerResult (CSHARP_FNPTR handle_disconnect)(ObjectHandle handle);
+    HandlerResult (CSHARP_FNPTR handle_update)(ObjectHandle handle);
+    HandlerResult (CSHARP_FNPTR handle_slow_update)(ObjectHandle handle);
+    HandlerResult (CSHARP_FNPTR handle_operation_request)(ObjectHandle handle, NativeOperationRequestMessage *message, bool encrypted,
                                                const luxon::enet::EnetCommandHeader *header);
 };
 
